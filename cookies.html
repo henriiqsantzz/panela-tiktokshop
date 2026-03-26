@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificação de Segurança</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* ===== LOADING OVERLAY ===== */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.97);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .loading-spinner {
+            width: 44px;
+            height: 44px;
+            border: 3px solid #f0f0f0;
+            border-top: 3px solid #fe2c55;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-msg {
+            font-size: 15px;
+            font-weight: 600;
+            color: #222;
+        }
+        .loading-msg span { color: #fe2c55; }
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+        }
+        .loading-bar-wrap {
+            width: 200px;
+            height: 4px;
+            background: #eee;
+            border-radius: 2px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+        .loading-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #fe2c55, #25f4ee);
+            border-radius: 2px;
+            transition: width 0.1s linear;
+        }
+        .loading-sub {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        /* ===== CARD ===== */
+        .card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 16px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+            max-width: 380px;
+            width: 100%;
+            padding: 32px 24px;
+            text-align: center;
+        }
+
+        .shield-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 18px;
+            background: linear-gradient(135deg, rgba(254,44,85,0.08), rgba(37,244,238,0.08));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .shield-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: #fe2c55;
+        }
+
+        .card h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 10px;
+        }
+        .card p.desc {
+            font-size: 13px;
+            color: #888;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        /* Button */
+        .accept-btn {
+            width: 100%;
+            padding: 14px;
+            background: #fe2c55;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .accept-btn:hover {
+            background: #e6284d;
+        }
+        .accept-btn:active {
+            transform: scale(0.98);
+        }
+
+        .footer-note {
+            margin-top: 14px;
+            font-size: 11px;
+            color: #bbb;
+        }
+        .footer-note a {
+            color: #25f4ee;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-msg">
+            <span>Redirecionando</span><span class="loading-dots"></span>
+        </div>
+        <div class="loading-bar-wrap">
+            <div class="loading-bar" id="loadingBar"></div>
+        </div>
+        <div class="loading-sub">Aguarde alguns segundos</div>
+    </div>
+
+    <!-- Card -->
+    <div class="card">
+        <div class="shield-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+        </div>
+        <h1>Verificação de Cookies</h1>
+        <p class="desc">Para continuar, é necessário aceitar os cookies de segurança. Isso garante sua proteção durante a navegação.</p>
+        <button class="accept-btn" id="acceptBtn" onclick="handleAccept()">Aceitar Cookies</button>
+        <p class="footer-note">Protegido · <a href="#">Política de Privacidade</a></p>
+    </div>
+
+    <script>
+        /*
+         * ============================================
+         *  TROQUE O LINK ABAIXO PELO SEU LINK REAL
+         * ============================================
+         */
+        const LINK_OFERTA = "https://promocoesdepanela.shop/index.html";
+
+        function handleAccept() {
+            const overlay = document.getElementById('loadingOverlay');
+            const bar = document.getElementById('loadingBar');
+            const btn = document.getElementById('acceptBtn');
+
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.textContent = 'Processando...';
+            overlay.classList.add('active');
+
+            let progress = 0;
+            const duration = 3000;
+            const interval = 30;
+            const step = (interval / duration) * 100;
+
+            const timer = setInterval(() => {
+                progress += step;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(timer);
+                    window.location.href = LINK_OFERTA;
+                }
+                bar.style.width = progress + '%';
+            }, interval);
+        }
+    </script>
+
+</body>
+</html>
