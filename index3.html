@@ -22,17 +22,17 @@
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { background:var(--bg); font-family:-apple-system,'SF Pro Text','PingFang SC','Helvetica Neue',sans-serif; font-size:14px; color:var(--text-primary); max-width:430px; margin:0 auto; -webkit-font-smoothing:antialiased; }
 
-  .status { display:flex; justify-content:space-between; align-items:center; padding:14px 18px 6px; background:var(--white); }
+  .status { display:flex; justify-content:space-between; align-items:center; padding:14px 18px 0; background:var(--white); }
   .status-time { font-size:15px; font-weight:600; letter-spacing:-0.3px; }
 
-  .topnav { position:sticky; top:0; z-index:200; background:var(--white); display:flex; align-items:center; gap:10px; padding:8px 14px 10px; border-bottom:1px solid var(--border); }
+  .topnav { position:sticky; top:0; z-index:200; background:var(--white); display:flex; align-items:center; gap:10px; padding:8px 14px 8px; border-bottom:1px solid var(--border); }
   .nav-search { flex:1; background:#F5F5F5; border-radius:20px; padding:8px 14px; display:flex; align-items:center; gap:7px; }
   .nav-search span { font-size:13px; color:var(--text-tertiary); }
   .nav-right { display:flex; align-items:center; gap:16px; }
   .cart-wrap { position:relative; }
   .cart-dot { position:absolute; top:-4px; right:-5px; background:var(--red); color:#fff; font-size:9px; font-weight:700; min-width:15px; height:15px; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:0 3px; }
 
-  .img-wrap { background:var(--white); position:relative; padding:16px 16px 12px; }
+  .img-wrap { background:var(--white); position:relative; padding:12px 16px 12px; }
   .img-inner { width:100%; height:296px; display:flex; align-items:center; justify-content:center; }
   .img-counter { position:absolute; bottom:14px; right:14px; background:rgba(0,0,0,0.38); color:#fff; font-size:11px; font-weight:500; padding:3px 9px; border-radius:10px; }
 
@@ -81,7 +81,26 @@
   .prot-grid { display:grid; grid-template-columns:1fr 1fr; row-gap:9px; }
   .prot-item { display:flex; align-items:center; gap:5px; font-size:12px; color:#444; }
 
-  .tabs { position:sticky; top:57px; z-index:190; background:var(--white); display:flex; border-bottom:1px solid var(--border); }
+  .tabs {
+    position:fixed;
+    top:57px;
+    left:50%;
+    transform:translateX(-50%) translateY(-110%);
+    width:100%;
+    max-width:430px;
+    z-index:190;
+    background:var(--white);
+    display:flex;
+    border-bottom:1px solid var(--border);
+    opacity:0;
+    pointer-events:none;
+    transition:transform 0.22s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease;
+  }
+  .tabs.tabs-visible {
+    transform:translateX(-50%) translateY(0);
+    opacity:1;
+    pointer-events:all;
+  }
   .tab { flex:1; padding:12px 2px; text-align:center; font-size:13px; color:var(--text-secondary); cursor:pointer; position:relative; white-space:nowrap; }
   .tab.active { color:var(--text-primary); font-weight:600; }
   .tab.active::after { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:22px; height:2px; background:var(--red); border-radius:2px; }
@@ -224,6 +243,35 @@
   .chip-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
   .chip { background:#F5F5F5; border-radius:14px; padding:5px 11px; font-size:12px; color:#444; display:flex; align-items:center; gap:5px; cursor:pointer; border:1px solid transparent; }
   .chip.active { background:#FFF0F3; color:var(--red); border-color:var(--red-border); }
+
+  /* ─── PROTEÇÃO MODAL NATIVE ─── */
+  .prot-modal-header {
+    display:flex; align-items:center; justify-content:center;
+    padding:14px 50px 13px; border-bottom:1px solid #F0F0F0;
+    position:relative; flex-shrink:0; background:#fff;
+  }
+  .prot-modal-header-title { font-size:16px; font-weight:700; color:#161823; }
+  .prot-modal-close {
+    position:absolute; right:14px; top:50%; transform:translateY(-50%);
+    width:30px; height:30px; border-radius:50%; background:#F5F5F5;
+    border:none; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .prot-scroll { overflow-y:auto; padding:0 16px 52px; flex:1; }
+  .prot-big-title { font-size:22px; font-weight:800; color:#8C5A1C; padding:20px 0 0; line-height:1.2; }
+  .prot-section { margin-bottom:0; }
+  .prot-divider { height:1px; background:#F0F0F0; margin:20px 0; }
+  .prot-icon-wrap { width:42px; height:42px; border-radius:10px; background:#FBF3E0; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .prot-section-title { font-size:15px; font-weight:700; color:#8C5A1C; line-height:1.3; flex:1; }
+  .prot-row { display:flex; align-items:center; gap:12px; margin-bottom:11px; margin-top:20px; }
+  .prot-body { font-size:13.5px; color:#3D3D3D; line-height:1.72; }
+  .prot-link { font-size:13.5px; color:#0066FF; margin-top:8px; display:inline-block; cursor:pointer; }
+  .prot-sub-label { font-size:13px; color:#3D3D3D; margin:14px 0 9px; font-weight:400; }
+  .prot-methods { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+  .pmt-chip { border:1px solid #E5E5E5; border-radius:7px; padding:6px 10px; background:#fff; display:flex; align-items:center; justify-content:center; min-height:36px; }
+  .cert-chip { border:1px solid #E5E5E5; border-radius:7px; padding:7px 11px; background:#fff; display:flex; align-items:center; gap:6px; }
+  .cert-label { font-size:9.5px; font-weight:700; color:#1A1F71; line-height:1.3; }
+  .prot-privacy { font-size:13.5px; color:#3D3D3D; line-height:1.65; }
+  .prot-privacy strong { color:#161823; }
 </style>
 </head>
 <body>
@@ -254,6 +302,14 @@
     </div>
     <svg width="17" height="4" viewBox="0 0 17 4" fill="none"><circle cx="2" cy="2" r="1.8" fill="#161823"/><circle cx="8.5" cy="2" r="1.8" fill="#161823"/><circle cx="15" cy="2" r="1.8" fill="#161823"/></svg>
   </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs" id="tabBar">
+  <div class="tab active" onclick="switchTab(this,'visao')">Visão geral</div>
+  <div class="tab" onclick="switchTab(this,'avaliacoes')">Avaliações</div>
+  <div class="tab" onclick="switchTab(this,'descricao')">Descrição</div>
+  <div class="tab" onclick="switchTab(this,'recomen')">Recomendações</div>
 </div>
 
 <!-- PRODUCT IMAGE -->
@@ -414,7 +470,7 @@
   </div>
 </div>
 
-<div class="divider"></div>
+<div style="height:1px;background:#EFEFEF;margin:0 14px;"></div>
 
 <!-- SHIPPING -->
 <div class="card">
@@ -429,7 +485,7 @@
   </div>
 </div>
 
-<div class="divider"></div>
+<div style="height:1px;background:#EFEFEF;margin:0 14px;"></div>
 
 <!-- COLOR OPTIONS -->
 <div class="card">
@@ -448,7 +504,7 @@
   </div>
 </div>
 
-<div class="divider"></div>
+<div style="height:1px;background:#EFEFEF;margin:0 14px;"></div>
 
 <!-- PROTECTION -->
 <div class="card" style="cursor:pointer;" onclick="openProtModal()">
@@ -465,13 +521,6 @@
   </div>
 </div>
 
-<!-- TABS -->
-<div class="tabs" id="tabBar">
-  <div class="tab active" onclick="switchTab(this,'visao')">Visão geral</div>
-  <div class="tab" onclick="switchTab(this,'avaliacoes')">Avaliações</div>
-  <div class="tab" onclick="switchTab(this,'descricao')">Descrição</div>
-  <div class="tab" onclick="switchTab(this,'recomen')">Recomendações</div>
-</div>
 
 <!-- ── TAB VISÃO GERAL ── -->
 <div id="tab-visao">
@@ -830,112 +879,109 @@
 <div class="sheet-overlay" id="protOverlay" onclick="closeProtModal()"></div>
 
 <div class="sheet" id="protSheet" style="max-height:92vh;display:flex;flex-direction:column;">
-  <!-- Header -->
-  <div style="display:flex;align-items:center;justify-content:center;padding:16px 14px 13px;border-bottom:1px solid var(--border);position:relative;flex-shrink:0;">
-    <span style="font-size:16px;font-weight:700;color:var(--text-primary);">Proteção do cliente</span>
-    <button class="sheet-close" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);" onclick="closeProtModal()">
-      <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 1L10 10M10 1L1 10" stroke="#333" stroke-width="1.6" stroke-linecap="round"/></svg>
+
+  <div class="prot-modal-header">
+    <span class="prot-modal-header-title">Proteção do cliente</span>
+    <button class="prot-modal-close" onclick="closeProtModal()">
+      <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 1L10 10M10 1L1 10" stroke="#333" stroke-width="1.7" stroke-linecap="round"/></svg>
     </button>
   </div>
 
-  <!-- Scrollable body -->
-  <div style="overflow-y:auto;padding:0 16px 40px;flex:1;">
+  <div class="prot-scroll">
 
-    <!-- ── 1. Devoluções ── -->
-    <div style="padding-top:22px;margin-bottom:22px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-        <div style="width:40px;height:40px;border-radius:10px;background:#F5EDD8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <img src="data:image/jpeg;base64,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" style="width:26px;height:26px;object-fit:contain;display:block;">
+    <p class="prot-big-title">Proteção do cliente</p>
+
+    <!-- 1. Devoluções -->
+    <div class="prot-section">
+      <div class="prot-row">
+        <div class="prot-icon-wrap">
+          <img src="data:image/jpeg;base64,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" style="width:26px;height:26px;object-fit:contain;">
         </div>
-        <span style="font-size:15px;font-weight:700;color:#7A5200;line-height:1.3;">Devoluções gratuitas em 30 dias</span>
+        <span class="prot-section-title">Devoluções gratuitas em 30 dias</span>
       </div>
-      <p style="font-size:13.5px;color:#444;line-height:1.7;margin-bottom:9px;">Devolução gratuita em até 30 dias após o recebimento do seu produto. Os Termos e Condições se aplicam.</p>
-      <span style="font-size:13.5px;color:#0080FF;cursor:pointer;font-weight:400;">Saiba como solicitar um reembolso</span>
+      <p class="prot-body">Devolução gratuita em até 30 dias após o recebimento do seu produto. Os Termos e Condições se aplicam.</p>
+      <span class="prot-link">Saiba como solicitar um reembolso</span>
     </div>
 
-    <div style="height:1px;background:var(--border);margin-bottom:22px;"></div>
+    <div class="prot-divider"></div>
 
-    <!-- ── 2. Pagamento seguro ── -->
-    <div style="margin-bottom:22px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-        <div style="width:40px;height:40px;border-radius:10px;background:#F5EDD8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <img src="data:image/png;base64,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" style="width:26px;height:26px;object-fit:contain;display:block;">
+    <!-- 2. Pagamento seguro -->
+    <div class="prot-section">
+      <div class="prot-row">
+        <div class="prot-icon-wrap">
+          <img src="data:image/png;base64,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" style="width:26px;height:26px;object-fit:contain;">
         </div>
-        <span style="font-size:15px;font-weight:700;color:#7A5200;line-height:1.3;">Pagamento seguro</span>
+        <span class="prot-section-title">Pagamento seguro</span>
       </div>
-      <p style="font-size:13.5px;color:#444;line-height:1.7;margin-bottom:8px;">Para garantir a segurança, as informações do seu cartão são criptografadas e protegidas contra acesso não autorizado.</p>
-      <p style="font-size:13.5px;color:#444;line-height:1.7;margin-bottom:14px;">O TikTok Shop não vende, aluga ou cede suas informações pessoais a terceiros para fins de marketing.</p>
+      <p class="prot-body" style="margin-bottom:8px;">Para garantir a segurança, as informações do seu cartão são criptografadas e protegidas contra acesso não autorizado.</p>
+      <p class="prot-body" style="margin-bottom:14px;">O TikTok Shop não vende, aluga ou cede suas informações pessoais a terceiros para fins de marketing.</p>
 
-      <p style="font-size:13px;color:#444;font-weight:400;margin-bottom:9px;">Aceitamos pagamento de:</p>
-      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;">
-        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:6px 9px;background:#fff;display:flex;align-items:center;justify-content:center;">
-          <svg width="36" height="22" viewBox="0 0 36 22" fill="none"><circle cx="13" cy="11" r="10" fill="#EB001B"/><circle cx="23" cy="11" r="10" fill="#F79E1B"/><path d="M18 4.5C20 6 21.3 8.3 21.3 11s-1.3 5-3.3 6.5C13 15 11.7 12.7 11.7 11s1.3-5 3.3-6.5" fill="#FF5F00"/></svg>
-        </div>
-        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:6px 12px;background:#fff;display:flex;align-items:center;">
-          <svg width="42" height="14" viewBox="0 0 42 14"><text x="0" y="13" font-size="14" font-weight="900" fill="#1A1F71" font-family="Arial,sans-serif" letter-spacing="0.5">VISA</text></svg>
-        </div>
-        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:6px 10px;background:#fff;display:flex;align-items:center;gap:4px;">
-          <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#FFD100"/></svg>
-          <span style="font-size:12px;font-weight:700;color:#1A1A1A;">elo</span>
-        </div>
-        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:6px 9px;background:#006FCF;display:flex;align-items:center;">
-          <span style="font-size:8px;font-weight:800;color:#fff;letter-spacing:0.5px;line-height:1.3;text-align:center;">AMERICAN<br>EXPRESS</span>
-        </div>
-        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:6px 8px;background:#fff;display:flex;align-items:center;">
-          <svg width="38" height="20" viewBox="0 0 38 20"><rect x="0" y="0" width="2.2" height="20" fill="#111"/><rect x="3.5" y="0" width="1.2" height="20" fill="#111"/><rect x="6" y="0" width="3" height="20" fill="#111"/><rect x="10.5" y="0" width="1.2" height="20" fill="#111"/><rect x="13" y="0" width="2.2" height="20" fill="#111"/><rect x="16.5" y="0" width="1.2" height="20" fill="#111"/><rect x="19" y="0" width="3" height="20" fill="#111"/><rect x="23.5" y="0" width="1.2" height="20" fill="#111"/><rect x="26" y="0" width="2.2" height="20" fill="#111"/><rect x="29.5" y="0" width="1.2" height="20" fill="#111"/><rect x="32" y="0" width="4" height="20" fill="#111"/><text x="0" y="34" font-size="8" fill="#111" font-family="Arial">BOLETO</text></svg>
-        </div>
-        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:6px 9px;background:#fff;display:flex;align-items:center;">
-          <svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 2L8.5 5.5H5L2 12L5 15.5V19L12 22L19 19V15.5L22 12L19 5.5H15.5L12 2Z" fill="#32BCAD"/><path d="M9.5 9.5L12 12M12 12L14.5 9.5M12 12L14.5 14.5M12 12L9.5 14.5" stroke="white" stroke-width="1.6" stroke-linecap="round"/></svg>
-        </div>
-        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:6px 11px;background:#fff;display:flex;align-items:center;">
-          <span style="font-size:11.5px;font-weight:500;color:#444;letter-spacing:-0.3px;">G Pay</span>
-        </div>
+      <p class="prot-sub-label">Aceitamos pagamento de:</p>
+      <div class="prot-methods">
+        <div class="pmt-chip"><svg width="36" height="22" viewBox="0 0 36 22" fill="none"><circle cx="13" cy="11" r="10" fill="#EB001B"/><circle cx="23" cy="11" r="10" fill="#F79E1B"/><path d="M18 4.5C20 6 21.3 8.3 21.3 11c0 2.7-1.3 5-3.3 6.5C13 16 11.7 13.7 11.7 11c0-2.7 1.3-5 3.3-6.5" fill="#FF5F00"/></svg></div>
+        <div class="pmt-chip" style="padding:6px 12px;"><svg width="40" height="13" viewBox="0 0 40 13"><text x="0" y="12" font-size="13.5" font-weight="900" fill="#1A1F71" font-family="Arial,sans-serif" letter-spacing="0.5">VISA</text></svg></div>
+        <div class="pmt-chip" style="gap:4px;"><svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="9" fill="#FFD100"/><text x="3.5" y="13.5" font-size="7.5" font-weight="800" fill="#000" font-family="Arial">elo</text></svg><span style="font-size:11.5px;font-weight:700;color:#000;">elo</span></div>
+        <div class="pmt-chip" style="background:#006FCF;border-color:#006FCF;"><span style="font-size:8px;font-weight:800;color:#fff;letter-spacing:0.4px;line-height:1.3;text-align:center;">AMERICAN<br>EXPRESS</span></div>
+        <div class="pmt-chip"><svg width="34" height="18" viewBox="0 0 34 18"><rect x="0" y="0" width="2" height="18" fill="#111"/><rect x="3.5" y="0" width="1" height="18" fill="#111"/><rect x="5.5" y="0" width="3" height="18" fill="#111"/><rect x="10" y="0" width="1" height="18" fill="#111"/><rect x="12" y="0" width="2" height="18" fill="#111"/><rect x="15.5" y="0" width="1" height="18" fill="#111"/><rect x="17.5" y="0" width="3" height="18" fill="#111"/><rect x="22" y="0" width="1" height="18" fill="#111"/><rect x="24" y="0" width="2" height="18" fill="#111"/><rect x="27.5" y="0" width="1" height="18" fill="#111"/><rect x="29.5" y="0" width="4" height="18" fill="#111"/><text x="1" y="28" font-size="7" fill="#111" font-family="Arial">BOLETO</text></svg></div>
+        <div class="pmt-chip"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M11 1L7 5H4L1 11L4 15V19L11 22L18 19V15L21 11L18 5H15L11 1Z" fill="#32BCAD"/><path d="M8 8.5L11 11M11 11L14 8.5M11 11L14 13.5M11 11L8 13.5" stroke="white" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+        <div class="pmt-chip" style="padding:6px 11px;"><span style="font-size:11.5px;font-weight:500;color:#444;letter-spacing:-0.2px;">G Pay</span></div>
       </div>
 
-      <p style="font-size:13px;color:#444;font-weight:400;margin-bottom:9px;">Certificações de segurança:</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:7px 11px;background:#fff;display:flex;align-items:center;gap:5px;">
-          <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="5" cy="7" r="5" fill="#EB001B"/><circle cx="9" cy="7" r="5" fill="#F79E1B" opacity="0.9"/></svg>
-          <span style="font-size:9.5px;font-weight:700;color:#1A1F71;line-height:1.3;">MasterCard<br>SecureCode</span>
-        </div>
-        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:7px 11px;background:#fff;display:flex;align-items:center;gap:5px;">
-          <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="7" fill="#1A1F71"/><path d="M3.5 7L5.5 9.5L10.5 4.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span style="font-size:9.5px;font-weight:700;color:#1A1F71;line-height:1.3;">Verified by<br>VISA</span>
-        </div>
+      <p class="prot-sub-label">Certificações de segurança:</p>
+      <div class="prot-methods" style="margin-bottom:14px;">
+        <div class="cert-chip"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="5" cy="7" r="5" fill="#EB001B"/><circle cx="9" cy="7" r="5" fill="#F79E1B" opacity="0.88"/></svg><span class="cert-label">MasterCard<br>SecureCode</span></div>
+        <div class="cert-chip"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="7" fill="#1A1F71"/><path d="M3.5 7L5.5 9.5L10.5 4.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="cert-label">Verified by<br>VISA</span></div>
       </div>
 
-      <p style="font-size:13.5px;color:#444;line-height:1.65;">Para obter informações sobre como o TikTok Shop usa seus dados pessoais, consulte nossa <span style="color:var(--text-primary);font-weight:500;cursor:pointer;">Privacy Policy</span>.</p>
+      <p class="prot-privacy">Para obter informações sobre como o TikTok Shop usa seus dados pessoais, consulte nossa <strong>Privacy Policy</strong>.</p>
     </div>
 
-    <div style="height:1px;background:var(--border);margin-bottom:22px;"></div>
+    <div class="prot-divider"></div>
 
-    <!-- ── 3. Reembolso ── -->
-    <div style="margin-bottom:22px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-        <div style="width:40px;height:40px;border-radius:10px;background:#F5EDD8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAA4ADYDASIAAhEBAxEB/8QAGgAAAgMBAQAAAAAAAAAAAAAAAAcFBggBBP/EAD8QAAECBQEDBgoHCQAAAAAAAAECAwAEBQYRBwgSIRMiMUFR0hQWFxgyV2F0lJU2QlZxk7KzFTdDUlNzgqGi/8QAGQEAAwEBAQAAAAAAAAAAAAAABAUGAwEC/8QAJxEAAgIBAQcEAwAAAAAAAAAAAQIAAwQRBRIVITFSkRMjM3E0UYH/2gAMAwEAAhEDEQA/ANk9AhS656pm0mRSqKptysOJ3iop3ksp9o7YntY79lrIt8uI3XKnMJIlGVdv859gjHtUnpqo1F+fnHlvzD6y44tfEkmE20830V3K+sZ4GJ6p3n6S9+WrUfGP28jHuTHchlXdfd5U3R23riYqaUT845h93wZs74UMjhjAjOkaB1QkeT2a7cQBxZ8GKvwzmFmLkXvW5JPIQ3IopSxQB1MoTeteoqXElVabUAcqSZRrB/4jQ+kl/wAle9CQ9lDVSZGJqXzxB7R7DGMomLPuKpWtXpesUxwoeaVzkZ4OI60GOYW0bq7PcOonvKwanT2xoZu4KB6IIrun91U+7rdYq0goc8Ydb+s2vrBgipW1WGsnWRgdJQtVNQbCplwGi3NbSqvMSqAoLclW3EJ3xnhvmKiNSNG/V2z8tl4pu0kANWalzf4TH6YhcRLZu0LUvKgDxKDGw62pB5+Y+TqTo76vWflrES03rZp9O0tNLm7YnHpFGAJZyWbU2MdHDOIS2mlovXpdTNGafEuncLrzuM7iBjOB28RDzqOn2nXiozbrlbdlCxOPJRNOqQlReT6YJKcYEb49uTahZQAJnfVj1uFOpMgPKRo76vGPlrECtStG/V6x8uYhKXDT0UqtTdPanJeeQw4UofYO+hwdoMR4EANtG0NpoPEKXDqcagnzNfaPXraVxKnKXbFFVS0SyA6tAYQ2g5OOG6YIWGySB4w1v3RH54Ie4+W7VgxLk0qlpAla2lf3uVL+2x+mIWwhk7SoWNWqiojALLGPwxC164m8/wDIb7lDifAv1LhpLP3LSruaqVtUx+pTDQKHmkIJSWz1Ejo6P9RoNqctLUa35Fi4KM5JPzk2602wpR30PoHP56cceHXGcNPruqNmV0VSn7iwocm8y56DiIdU7rhTGbUYqkjRZZNUdeWFSxczyZ/qHA64ZbOvqSkhm/kAzqbHsBUc/wBxKak24i1Lzn6I28X0Mry2o9O4RkZ9uDFdPox77iq87XazM1afc5SYmVlSz9X7o8EJ7mBc7vSM6lIQa9Y79kj6RVz3Rv8ANBHdkhLnjBW1hOU+CNjP+UEUOGNaVk/m/MY0dWNLKbfKmZwTKpGotI5MPBGQpHYRC3GzhP5+lUv8Ee/BBDK/AosffYc4NXl21popnfNwn/tXL/BHvwebfP4x40y/wZ78EEZ8Mxu2acQv7pzzb5/7Uy/wh78dTs3zwIzdLOOvEme/BBHeGY3bO8Qv7o2tM7DpljUlcrJqcffeVvPvrGVLP3dQgggg5aKwNAIKzsx1M//Z" style="width:26px;height:26px;object-fit:contain;display:block;">
+    <!-- 3. Reembolso -->
+    <div class="prot-section">
+      <div class="prot-row">
+        <div class="prot-icon-wrap">
+          <img src="data:image/png;base64,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" style="width:26px;height:26px;object-fit:contain;">
         </div>
-        <span style="font-size:15px;font-weight:700;color:#7A5200;line-height:1.3;">Reembolso se algo der errado</span>
+        <span class="prot-section-title">Reembolso se algo der errado</span>
       </div>
-      <p style="font-size:13.5px;color:#444;line-height:1.7;">Se o seu pedido for perdido ou danificado durante o transporte antes de chegar, reembolsaremos automaticamente o seu dinheiro. Você não precisa fazer nada.</p>
+      <p class="prot-body">Se o seu pedido for perdido ou danificado durante o transporte antes de chegar, reembolsaremos automaticamente o seu dinheiro. Você não precisa fazer nada.</p>
     </div>
 
-    <div style="height:1px;background:var(--border);margin-bottom:22px;"></div>
+    <div class="prot-divider"></div>
 
-    <!-- ── 4. Pedido não enviado ── -->
-    <div style="margin-bottom:8px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-        <div style="width:40px;height:40px;border-radius:10px;background:#F5EDD8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <img src="data:image/png;base64,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" style="width:26px;height:26px;object-fit:contain;display:block;">
+    <!-- 4. Prazo -->
+    <div class="prot-section">
+      <div class="prot-row">
+        <div class="prot-icon-wrap">
+          <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAA7ADsDASIAAhEBAxEB/8QAHAABAAICAwEAAAAAAAAAAAAACAYHAAQBAwUC/8QAOxAAAQMDAgQEAwQHCQAAAAAAAQIDBAAFBgcREiExQRNRcYEIFGEiI6HBFSQyU3Kx0TNCRFJjgpHS8P/EABkBAAMBAQEAAAAAAAAAAAAAAAIDBQEEAP/EACYRAAICAAYBBQADAAAAAAAAAAECAAMEBRESIUExExQiUWEjMkL/2gAMAwEAAhEDEQA/AGVXHEKwnlVQfEBqSvFoabDZ3NrvKb3U4Osdvpv6nntSL7UoQu0ZTW1r7VkjzvVPFMRWqNLlrlTk/wCFjjjX7non3NVXdPiLuSnCm349Hbb3+yXXiSfYCoVplptfM9lrnOPLj27jPjS3RxKcPcJ8zV0OaTad4rYX7leI78lmMjjfedWT9OQFR/VxeJG5fispGvDUcHkyJWb4i3w8lN3x5Ba5cS4z3Mex/rVu4RqBjWYND9E3AeOBuuO4ngcT7Hr7VCJOjeB5RY2LnYvmIIkshxh1s7jhPMboNUdmOLZLpvkTS1uuNEK4os1hRAX/AO8qw4jF4X5P8lminD4jhODGpvXJqvNE8+azbHv1koRdImyJTY7+Sx9DVh1bquWxA69yZZW1blWnRMfRHiuvuEIQ2grUT2AG9DJpM3UrVUIWtYVdJp5/umh/RA/CkLrFqDj1psd7xx+Y4zdnre42yjwV7ErbIBB2271ROgd/sWNZu5db9I8BhuE4GV8BV94Sgdvpx1GzG5HuWrXjuU8DW1db2ac9RXRIttxfGgywhEeBbo5Ow/uoQNyfwJos5lqDmWdG6tRnVsWdlkuvRmuQDXGAOM9+ZFJq3XK0Z1iktVuecdgzG3YxcLZTuCOE7b+tE/KMSzHB3Z7D8OSiG+2WnZLKeJpxvcHmR05gda3Mi/pjZ/X8gZeAznd5/Z7uD55nuHSLXFdZlTrY8w26xFUji3YPTg26UjMyx+Dm+GOQZLZSJLQcYUobKaXtuk1SOleskC1xrbZr/aW0sRWkRm5rY3UhI8/p6UkmXG32UOtLCm1gKSodCDTcv2WVFQ2o+oGNJSwHTQ/cH2j11lYhqvEjySWkuSTBlN+p25+i9jTGCuVDbWptNt1hvC4w2UiUh8bf5yAv+ZpiRuJUZpW/VA/lQ5YSoev6MLH/AC2WHsSutdsAazHHjIhthN4hIK4y/wB4OpbPr2+tHLTHCJ+Y5Yi0hDjEZhe853b+yQDzH8Z6Cmtw+daNvtVutrsuRChsR3ZS/FkLbSB4itupp2Jy2u61bD15/YmnGvVWUE8TJkzMWwCSnErey4/b44+WjlBIKRtvyTzJ23P1NHyZrDc77id/smStJW5MYAiLZbA8NQI3SR+dXxZdS8SuuSS7BGuSUyWHPDQpfJt49+A9+f8Az2rwtUtK7BfLLPm2izMpvak7sqaX4YWvfnuOh79aDF1tan8DeOoWHdEOly+e4csqn2u7sY/DstuWmYzBbjSlIRsZD30A69hvTDxKM5Z8LtMOetIdh29pt9RPIFDYBO/saiel2nFgxizQbhMtTLd5QwDIedXx+GvbmRvyHtUG151WirhSMWxqQHlOp8OXKbXySnuhJ779zSKF9jWbLPJ6jbT7pwlY4Eq+e8vN9YFOMoUpu43QBA/0+P8A6CmeyChpKfIbUdfhbwt1ya7mNwZ4W20lqCCOqj+2v8vc0jOfma6MrqZVNrf6iswtBYIOp9itO6Q2bhbZMCTxFqS0tlzgOx4VDY7Ht1rcFZ51UYa8Tg8Ql6haMZPjsh2ZZUOXaACShTI+/bHXmjv6io5btQs8sKfkmr5PZDf2PBf5+H9Nj0ppnoa1Zlqtk1I+bgRn/wCNsGpFuVkMWrbSUaswBXSxdYMLll+c5asQHrncp/ibfqzG53/2IqfaaaGXW5vM3HK0qgQtwr5Tf75z12/YH4+lJKPAhQ2+GJEYYHkhAFbCPzracq0bda26etzAhdtY0nTb4Ma3wmYcNpDMdlAS22kbBIFbdcVlVgAvAk4nXzP/2Q==" style="width:26px;height:26px;object-fit:contain;">
         </div>
-        <span style="font-size:15px;font-weight:700;color:#7A5200;line-height:1.3;">Se o seu pedido não for enviado no prazo</span>
+        <span class="prot-section-title">Se o seu pedido não for enviado no prazo</span>
       </div>
-      <p style="font-size:13.5px;color:#444;line-height:1.7;">Você não precisa fazer nada. Se ele não for despachado em até 7 dias úteis, cancelaremos o seu pedido e reembolsaremos automaticamente o seu dinheiro.</p>
+      <p class="prot-body">Você não precisa fazer nada. Se ele não for despachado em até 7 dias úteis, cancelaremos o seu pedido e reembolsaremos automaticamente o seu dinheiro.</p>
     </div>
 
   </div>
 </div>
+
 <script>
+// Show tabs only after scrolling past the product image area
+(function() {
+  const tabs = document.getElementById('tabBar');
+  // Trigger after the product image + flash banner area
+  const flashEl = document.querySelector('.flash');
+  const threshold = flashEl ? (flashEl.offsetTop - 10) : 350;
+  
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > threshold) {
+      tabs.classList.add('tabs-visible');
+    } else {
+      tabs.classList.remove('tabs-visible');
+    }
+  }, { passive: true });
+})();
+
 function switchTab(el, id) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
