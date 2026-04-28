@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>App de Compras - Produto</title>
+    <style>
+        /* Reset e Configurações Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #111;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Container Mobile (Simulando a tela do App) */
+        .app-container {
+            width: 100%;
+            max-width: 414px; /* Tamanho base de um iPhone Max */
+            background-color: #fff;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding-bottom: 80px; /* Espaço para a barra inferior */
+        }
+
+        /* --- Header Superior Fixo --- */
+        .header {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 100;
+        }
+
+        .top-nav {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            gap: 12px;
+            height: 50px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #111;
+        }
+
+        .search-bar {
+            flex: 1;
+            background: #f2f2f2;
+            border-radius: 6px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            color: #777;
+            font-size: 14px;
+            gap: 8px;
+        }
+
+        .cart-wrapper {
+            position: relative;
+        }
+
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -8px;
+            background: #ff2a55;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 10px;
+            border: 1px solid #fff;
+        }
+
+        /* --- Abas --- */
+        .tabs {
+            display: flex;
+            padding: 0 16px;
+            gap: 24px;
+            border-bottom: 1px solid #f0f0f0;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+        
+        .tab {
+            font-size: 15px;
+            color: #666;
+            padding: 12px 0;
+            position: relative;
+            white-space: nowrap;
+        }
+        .tab.active {
+            color: #111;
+            font-weight: 600;
+        }
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 3px;
+            background: #111;
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* --- Imagem Principal --- */
+        .main-image-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .main-image-container img {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+        }
+        .image-counter {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(0,0,0,0.4);
+            color: #fff;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        /* --- Banner Oferta Relâmpago --- */
+        .flash-sale {
+            background: linear-gradient(90deg, #ff1a4a 0%, #ff5c1a 100%);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .price-section {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+        .discount-tag {
+            background: #fff;
+            color: #ff1a4a;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        .current-price {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .currency { font-size: 14px; font-weight: normal; }
+        .original-price {
+            font-size: 12px;
+            text-decoration: line-through;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+        .timer-section {
+            text-align: right;
+            font-size: 12px;
+        }
+        .timer-title { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-weight: bold; margin-bottom: 2px;}
+
+        /* --- Informações do Produto --- */
+        .product-info {
+            padding: 16px;
+            background: #fff;
+            margin-bottom: 8px;
+        }
+        .installments {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            color: #ff2a55;
+            margin-bottom: 12px;
+            gap: 6px;
+        }
+        .installments span { color: #111; }
+        
+        .coupons-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .coupon-tag {
+            background: rgba(255, 42, 85, 0.08);
+            color: #ff2a55;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .product-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .product-title {
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.4;
+            color: #111;
+        }
+        .save-btn {
+            color: #111;
+            margin-top: 2px;
+        }
+
+        .rating-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #666;
+        }
+        .stars { color: #f5a623; display: flex; align-items: center; gap: 2px;}
+
+        /* --- Seção de Frete --- */
+        .section-block {
+            background: #fff;
+            padding: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .section-header {
+            display: flex;
+            gap: 12px;
+        }
+        .section-icon { color: #111; margin-top: 2px; }
+        .section-content { flex: 1; }
+        .shipping-date { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+        .shipping-fee { font-size: 13px; color: #666; }
+        .shipping-fee span { text-decoration: line-through; margin-right: 4px; }
+        .shipping-discount { font-size: 13px; color: #00a680; margin-top: 4px; }
+        
+        .arrow-right { color: #ccc; }
+
+        /* --- Variações (Cores) --- */
+        .variations-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .var-thumb {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background: #f9f9f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .var-text { font-size: 13px; color: #666; margin-top: auto; margin-bottom: auto;}
+
+        /* --- Proteção do Cliente --- */
+        .protection {
+            font-size: 13px;
+            color: #555;
+        }
+        .protection-title {
+            color: #b07e2a;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .protection-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .protection-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .protection-item svg { color: #b07e2a; }
+
+        /* --- Ofertas e Cupons --- */
+        .section-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+        .offer-card {
+            background: #f0fdfa;
+            border: 1px solid #ccfbf1;
+            border-radius: 6px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .offer-left h4 { font-size: 14px; color: #111; margin-bottom: 4px; }
+        .offer-left p { font-size: 12px; color: #999; }
+        .offer-btn {
+            background: #fff;
+            border: 1px solid #00a680;
+            color: #00a680;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 16px;
+        }
+
+        /* --- Barra Inferior Fixa --- */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            background: #fff;
+            border-top: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            height: 60px;
+            z-index: 100;
+        }
+        .bottom-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 10px;
+            color: #333;
+            width: 50px;
+            text-decoration: none;
+        }
+        .btn-add-cart {
+            flex: 1;
+            background: #f2f2f2;
+            color: #111;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            border-radius: 20px 0 0 20px;
+            height: 40px;
+            margin-left: 10px;
+        }
+        .btn-buy-now {
+            flex: 1;
+            background: #ff2a55;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            border-radius: 0 20px 20px 0;
+            height: 40px;
+        }
+
+        /* Modal / Toast (Simulado sobre a barra inferior) */
+        .toast {
+            position: absolute;
+            bottom: 60px;
+            left: 0;
+            width: 100%;
+            background: #fff;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            border-radius: 12px 12px 0 0;
+            padding: 16px;
+            text-align: center;
+            z-index: 90;
+        }
+        .toast-icon { margin-bottom: 8px; color: #ccc;}
+        .toast-title { font-size: 14px; font-weight: 600; color: #111; margin-bottom: 4px; }
+        .toast-subtitle { font-size: 12px; color: #888; }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <div class="header">
+        <div class="top-nav">
+            <button class="icon-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            
+            <div class="search-bar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                enxoval para a casa
+            </div>
+            
+            <button class="icon-btn">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+            </button>
+            
+            <button class="icon-btn cart-wrapper">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                <span class="badge">24</span>
+            </button>
+            
+            <button class="icon-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle><circle cx="5" cy="12" r="2"></circle></svg>
+            </button>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active">Visão geral</div>
+            <div class="tab">Avaliações</div>
+            <div class="tab">Descrição</div>
+            <div class="tab">Recomendações</div>
+        </div>
+    </div>
+
+    <div class="main-image-container">
+        <img src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23faf8f5'/%3E%3Ccircle cx='200' cy='200' r='120' fill='%23d0bcae'/%3E%3Cpath d='M80 200 Q200 350 320 200' fill='none' stroke='%23a4836f' stroke-width='20' stroke-linecap='round'/%3E%3C/svg%3E" alt="Jogo de Panelas">
+        <div class="image-counter">1/9</div>
+    </div>
+
+    <div class="flash-sale">
+        <div>
+            <div class="price-section">
+                <span class="discount-tag">-41%</span>
+                <span style="font-size: 12px; margin-left: 4px;">A partir de</span>
+                <span class="currency">R$</span>
+                <span class="current-price">164,43</span>
+            </div>
+            <div class="original-price">R$ 278,89</div>
+        </div>
+        <div class="timer-section">
+            <div class="timer-title">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                Oferta relâmpag...
+            </div>
+            <div id="countdown">Termina em 00:03:26</div>
+        </div>
+    </div>
+
+    <div class="product-info">
+        <div class="installments">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>4x R$ 41,10</span> sem juros 
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+
+        <div class="coupons-row">
+            <div class="coupon-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12z"/><path d="M7.5 17h1.5v-1.5h-1.5zM15.5 17h1.5v-1.5h-1.5zM7.5 8.5h1.5V7h-1.5zM15.5 8.5h1.5V7h-1.5zM11.5 12.5h1.5V11h-1.5z"/></svg>
+                Desconto de R$ 5
+            </div>
+            <div class="coupon-tag" style="background: rgba(255, 42, 85, 0.05); color: #c42953;">
+                Economize 3% com bônus
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+
+        <div class="product-title-row">
+            <h1 class="product-title">Jogo de Panelas 10 Peças Antiaderente com Tampa de Vidro Temperado D'Italia Bianco V...</h1>
+            <button class="icon-btn save-btn">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+            </button>
+        </div>
+
+        <div class="rating-row">
+            <div class="stars">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <span style="color: #111; font-weight: bold; margin-left: 2px;">4.6</span>
+            </div>
+            <span>(20)</span>
+            <span style="color: #ddd;">|</span>
+            <span><b>260</b> vendidos</span>
+        </div>
+    </div>
+
+    <div class="section-block">
+        <div class="section-header">
+            <svg class="section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            <div class="section-content">
+                <div class="shipping-date">Receba até 30 de abr - 4 de mai</div>
+                <div class="shipping-fee">Taxa de envio: <span>R$ 23,90</span> R$ 3,90</div>
+                <div class="shipping-discount">Desconto de R$ 20 no frete em pedidos acima de R$ 59</div>
+            </div>
+            <svg class="arrow-right" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+    </div>
+
+    <div class="section-block">
+        <div class="section-header" style="align-items: center;">
+            <svg class="section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <div class="section-content" style="display: flex; align-items: center; justify-content: space-between;">
+                <div class="variations-row" style="margin-top: 0;">
+                    <div class="var-thumb">📦</div>
+                    <div class="var-thumb">📦</div>
+                    <div class="var-thumb">📦</div>
+                    <div class="var-thumb">📦</div>
+                    <div class="var-thumb">📦</div>
+                </div>
+                <div class="var-text">21 opções dispo...</div>
+            </div>
+            <svg class="arrow-right" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+    </div>
+
+    <div class="section-block protection">
+        <div class="section-header">
+            <div class="section-content">
+                <div class="protection-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    Proteção do cliente
+                </div>
+                <div class="protection-grid">
+                    <div class="protection-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Devolução gratuita</div>
+                    <div class="protection-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Reembolso se algo der errado</div>
+                    <div class="protection-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Pagamento seguro</div>
+                    <div class="protection-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Se o seu pedido não for enviado</div>
+                </div>
+            </div>
+            <svg class="arrow-right" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+    </div>
+
+    <div class="section-block">
+        <div class="section-header" style="justify-content: space-between;">
+            <div class="section-title" style="margin: 0;">Ofertas</div>
+            <svg class="arrow-right" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+        <div class="offer-card">
+            <div class="offer-left">
+                <h4>Cupom de envio</h4>
+                <p>Desconto de R$ 20 no frete em pedidos acima de R$ 59</p>
+            </div>
+            <button class="offer-btn">Usar</button>
+        </div>
+    </div>
+
+    <div class="toast">
+        <svg class="toast-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+        <div class="toast-title">Este produto não é elegível para comissão</div>
+        <div class="toast-subtitle">Toque para encontrar produtos semelhantes</div>
+    </div>
+
+    <div class="bottom-bar">
+        <a href="#" class="bottom-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            Loja
+        </a>
+        <a href="#" class="bottom-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            Chat
+        </a>
+        <button class="btn-add-cart">Adicionar<br>ao carrinho</button>
+        <button class="btn-buy-now">Comprar<br>com cupom</button>
+    </div>
+
+</div>
+
+<script>
+    // Lógica simples para o timer do layout bater com a imagem
+    let time = 3 * 60 + 26; // 3 minutos e 26 segundos
+    const timerElement = document.getElementById('countdown');
+
+    setInterval(() => {
+        if(time <= 0) return;
+        time--;
+        const hours = Math.floor(time / 3600);
+        const minutes = Math.floor((time % 3600) / 60);
+        const seconds = time % 60;
+        
+        timerElement.textContent = `Termina em ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }, 1000);
+</script>
+
+</body>
+</html>
