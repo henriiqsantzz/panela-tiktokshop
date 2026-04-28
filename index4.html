@@ -375,6 +375,7 @@
             border-radius: 20px 0 0 20px;
             height: 40px;
             margin-left: 10px;
+            cursor: pointer;
         }
         .btn-buy-now {
             flex: 1;
@@ -385,6 +386,113 @@
             border: none;
             border-radius: 0 20px 20px 0;
             height: 40px;
+            cursor: pointer;
+        }
+
+        /* --- ESTILOS DO MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none; /* Escondido por padrão */
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 414px;
+            background: #fff;
+            border-radius: 12px 12px 0 0;
+            padding: 20px 16px;
+            position: relative;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-modal {
+            background: #f2f2f2;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .modal-product-preview {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .modal-product-preview img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        .modal-price {
+            color: #ff2a55;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .variation-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .variation-option {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .variation-option.selected {
+            border-color: #ff2a55;
+            background: rgba(255, 42, 85, 0.05);
+            color: #ff2a55;
+        }
+
+        .confirm-btn {
+            width: 100%;
+            background: #ff2a55;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            height: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
         }
 
     </style>
@@ -498,7 +606,7 @@
         </div>
     </div>
 
-    <div class="section-block">
+    <div class="section-block" id="openVariationModal">
         <div class="section-header" style="align-items: center;">
             <svg class="section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
             <div class="section-content" style="display: flex; align-items: center; justify-content: space-between;">
@@ -556,14 +664,45 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
             Chat
         </a>
-        <button class="btn-add-cart">Adicionar<br>ao carrinho</button>
-        <button class="btn-buy-now">Comprar<br>com cupom</button>
+        <button class="btn-add-cart" id="btnOpenModal1">Adicionar<br>ao carrinho</button>
+        <button class="btn-buy-now" id="btnOpenModal2">Comprar<br>com cupom</button>
+    </div>
+
+    <div class="modal-overlay" id="modalVariations">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="font-size: 16px;">Selecione a variação</h3>
+                <button class="close-modal" id="closeModal">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            
+            <div class="modal-product-preview">
+                <img src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23faf8f5'/%3E%3Ccircle cx='200' cy='200' r='120' fill='%23d0bcae'/%3E%3Cpath d='M80 200 Q200 350 320 200' fill='none' stroke='%23a4836f' stroke-width='20' stroke-linecap='round'/%3E%3C/svg%3E" alt="Produto">
+                <div>
+                    <div class="modal-price">R$ 164,43</div>
+                    <div style="font-size: 13px; color: #666; margin-top: 4px;">Estoque: 124 peças</div>
+                </div>
+            </div>
+
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Cor:</div>
+            <div class="variation-grid">
+                <div class="variation-option selected">Branco</div>
+                <div class="variation-option">Preto</div>
+                <div class="variation-option">Vermelho</div>
+                <div class="variation-option">Cinza</div>
+                <div class="variation-option">Azul</div>
+                <div class="variation-option">Verde</div>
+            </div>
+
+            <button class="confirm-btn" id="confirmSelection">Confirmar</button>
+        </div>
     </div>
 
 </div>
 
 <script>
-    // Lógica simples para o timer do layout bater com a imagem
+    // Lógica para o timer do layout
     let time = 3 * 60 + 26; // 3 minutos e 26 segundos
     const timerElement = document.getElementById('countdown');
 
@@ -576,6 +715,49 @@
         
         timerElement.textContent = `Termina em ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }, 1000);
+
+    // --- LÓGICA DO MODAL ---
+    const modal = document.getElementById('modalVariations');
+    const btnOpen1 = document.getElementById('btnOpenModal1');
+    const btnOpen2 = document.getElementById('btnOpenModal2');
+    const btnOpen3 = document.getElementById('openVariationModal');
+    const btnClose = document.getElementById('closeModal');
+    const btnConfirm = document.getElementById('confirmSelection');
+    const options = document.querySelectorAll('.variation-option');
+
+    // Função para abrir modal
+    const openModal = () => {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Impede scroll ao fundo
+    };
+
+    // Função para fechar modal
+    const closeModal = () => {
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    };
+
+    // Eventos de clique para abrir
+    btnOpen1.addEventListener('click', openModal);
+    btnOpen2.addEventListener('click', openModal);
+    btnOpen3.addEventListener('click', openModal);
+
+    // Eventos de clique para fechar
+    btnClose.addEventListener('click', closeModal);
+    btnConfirm.addEventListener('click', closeModal);
+
+    // Fechar ao clicar fora do conteúdo branco
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    // Lógica de seleção visual das opções
+    options.forEach(opt => {
+        opt.addEventListener('click', () => {
+            options.forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+        });
+    });
 </script>
 
 </body>
