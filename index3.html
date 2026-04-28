@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TikTok Shop</title>
+<style>
+  :root {
+    --red: #FE2C55;
+    --red-light: #FFF0F3;
+    --red-border: #FFCDD5;
+    --green: #07A345;
+    --gold: #E6A817;
+    --text-primary: #161823;
+    --text-secondary: #666;
+    --text-tertiary: #999;
+    --bg: #F5F5F5;
+    --white: #FFFFFF;
+    --border: #F0F0F0;
+    --border-mid: #E8E8E8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { background:var(--bg); font-family:-apple-system,'SF Pro Text','PingFang SC','Helvetica Neue',sans-serif; font-size:14px; color:var(--text-primary); max-width:430px; margin:0 auto; -webkit-font-smoothing:antialiased; }
+
+  .status { display:flex; justify-content:space-between; align-items:center; padding:14px 18px 6px; background:var(--white); }
+  .status-time { font-size:15px; font-weight:600; letter-spacing:-0.3px; }
+
+  .topnav { position:sticky; top:0; z-index:200; background:var(--white); display:flex; align-items:center; gap:10px; padding:8px 14px 10px; border-bottom:1px solid var(--border); }
+  .nav-search { flex:1; background:#F5F5F5; border-radius:20px; padding:8px 14px; display:flex; align-items:center; gap:7px; }
+  .nav-search span { font-size:13px; color:var(--text-tertiary); }
+  .nav-right { display:flex; align-items:center; gap:16px; }
+  .cart-wrap { position:relative; }
+  .cart-dot { position:absolute; top:-4px; right:-5px; background:var(--red); color:#fff; font-size:9px; font-weight:700; min-width:15px; height:15px; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:0 3px; }
+
+  .img-wrap { background:var(--white); position:relative; padding:16px 16px 12px; }
+  .img-inner { width:100%; height:296px; display:flex; align-items:center; justify-content:center; }
+  .img-counter { position:absolute; bottom:14px; right:14px; background:rgba(0,0,0,0.38); color:#fff; font-size:11px; font-weight:500; padding:3px 9px; border-radius:10px; }
+
+  .flash { background:linear-gradient(130deg,#FF2442 0%,#FE2C55 100%); padding:11px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .flash-left { display:flex; align-items:center; gap:9px; }
+  .f-badge { background:rgba(255,255,255,0.22); color:#fff; font-size:11px; font-weight:700; padding:3px 7px; border-radius:4px; letter-spacing:0.2px; }
+  .f-label { font-size:11.5px; color:rgba(255,255,255,0.82); margin-bottom:1px; }
+  .f-price { font-size:26px; font-weight:700; color:#fff; letter-spacing:-0.5px; line-height:1.1; }
+  .f-price sup { font-size:13px; vertical-align:top; margin-top:4px; display:inline-block; font-weight:600; }
+  .f-old { font-size:11.5px; color:rgba(255,255,255,0.55); text-decoration:line-through; margin-top:2px; }
+  .flash-right { text-align:right; }
+  .f-bolt { display:flex; align-items:center; gap:4px; color:#fff; font-size:12px; font-weight:500; justify-content:flex-end; }
+  .f-timer { color:#fff; font-size:12px; margin-top:4px; }
+  .f-timer b { font-weight:700; }
+
+  .card { background:var(--white); padding:13px 14px; }
+  .divider { height:8px; background:var(--bg); }
+
+  .installments { display:flex; align-items:center; gap:7px; margin-bottom:11px; }
+  .install-text { font-size:13px; }
+  .install-text strong { color:var(--red); }
+
+  .promo-row { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:12px; }
+  .ptag { display:inline-flex; align-items:center; gap:4px; padding:4px 8px; background:var(--red-light); border:1px solid var(--red-border); border-radius:4px; font-size:11.5px; color:var(--red); font-weight:500; }
+
+  .prod-title { font-size:15px; font-weight:600; line-height:1.45; letter-spacing:-0.1px; }
+  .prod-meta { display:flex; align-items:center; gap:8px; margin-top:7px; }
+  .meta-sep { width:1px; height:12px; background:var(--border-mid); }
+  .meta-text { font-size:12.5px; color:var(--text-secondary); }
+  .bm-icon { margin-left:auto; cursor:pointer; opacity:0.5; }
+
+  .ship-row { display:flex; align-items:flex-start; gap:10px; }
+  .ship-body { flex:1; }
+  .ship-date { font-size:13px; font-weight:500; }
+  .ship-cost { font-size:12px; color:var(--text-secondary); margin-top:3px; }
+  .ship-cost s { color:var(--text-tertiary); }
+  .ship-promo { font-size:12px; color:var(--green); margin-top:4px; font-weight:500; }
+
+  .thumbs-row { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; }
+  .thumbs-row::-webkit-scrollbar { display:none; }
+  .thumb { width:54px; height:54px; border-radius:6px; border:1.5px solid var(--border-mid); flex-shrink:0; }
+  .thumb.active { border-color:var(--red); }
+  .thumb-more { font-size:11.5px; color:var(--text-secondary); margin-top:7px; display:flex; align-items:center; gap:3px; }
+
+  .prot-title { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--gold); margin-bottom:12px; }
+  .prot-grid { display:grid; grid-template-columns:1fr 1fr; row-gap:9px; }
+  .prot-item { display:flex; align-items:center; gap:5px; font-size:12px; color:#444; }
+
+  .tabs { position:sticky; top:57px; z-index:190; background:var(--white); display:flex; border-bottom:1px solid var(--border); }
+  .tab { flex:1; padding:12px 2px; text-align:center; font-size:13px; color:var(--text-secondary); cursor:pointer; position:relative; white-space:nowrap; }
+  .tab.active { color:var(--text-primary); font-weight:600; }
+  .tab.active::after { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:22px; height:2px; background:var(--red); border-radius:2px; }
+
+  .section-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .section-title { font-size:15px; font-weight:700; }
+  .coupon-card { background:#F2FAF6; border:1px solid #C8E8D5; border-radius:8px; padding:12px 13px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .coupon-badge { background:var(--green); color:#fff; font-size:9px; font-weight:700; padding:2px 5px; border-radius:8px; }
+  .coupon-title { font-size:13px; font-weight:600; }
+  .coupon-desc { font-size:11.5px; color:var(--text-secondary); margin-top:2px; line-height:1.45; }
+  .usar-btn { border:1.5px solid var(--green); color:var(--green); background:transparent; font-size:13px; font-weight:600; padding:6px 14px; border-radius:14px; cursor:pointer; flex-shrink:0; }
+
+  .big-score { font-size:30px; font-weight:700; letter-spacing:-1px; }
+  .rating-summary { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .review-card { padding:14px 0; border-bottom:1px solid var(--border); }
+  .review-card:last-child { border-bottom:none; }
+  .rev-top { display:flex; align-items:center; gap:9px; margin-bottom:7px; }
+  .rev-avatar { width:32px; height:32px; border-radius:50%; overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .rev-name { font-size:13px; font-weight:500; }
+  .rev-stars { display:flex; gap:2px; margin-top:3px; }
+  .rev-tag { font-size:11.5px; color:var(--text-tertiary); margin-bottom:5px; }
+  .rev-text { font-size:13px; color:#333; line-height:1.55; }
+  .rev-attr { font-size:12.5px; color:var(--text-tertiary); line-height:1.6; }
+  .rev-attr span { color:#333; }
+  .rev-photo { width:78px; height:78px; border-radius:6px; margin-top:9px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+
+  .store-row { display:flex; align-items:center; gap:12px; }
+  .store-logo { width:46px; height:46px; border-radius:8px; background:#0D1B8E; display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; }
+  .store-name { font-size:14px; font-weight:600; }
+  .store-sub { font-size:12px; color:var(--text-secondary); margin-top:2px; }
+  .visit-btn { margin-left:auto; border:1.5px solid #333; background:transparent; padding:7px 16px; border-radius:6px; font-size:13px; font-weight:500; cursor:pointer; flex-shrink:0; }
+  .store-metric { font-size:12px; color:#444; margin-top:10px; }
+  .store-metric strong { color:var(--text-primary); }
+
+  .desc-heading { font-size:14px; font-weight:700; margin:14px 0 7px; }
+  .desc-heading:first-child { margin-top:0; }
+  .desc-p { font-size:13px; color:#444; line-height:1.7; margin-bottom:10px; }
+  .desc-list { list-style:none; }
+  .desc-list li { font-size:13px; color:#444; line-height:1.6; padding:5px 0; border-bottom:1px solid var(--border); display:flex; gap:6px; }
+  .desc-list li::before { content:'—'; color:var(--text-tertiary); flex-shrink:0; }
+  .spec-grid { display:grid; grid-template-columns:auto 1fr; gap:6px 16px; margin:10px 0; }
+  .spec-k { font-size:12.5px; color:var(--text-secondary); padding:2px 0; }
+  .spec-v { font-size:12.5px; color:var(--text-primary); font-weight:500; padding:2px 0; }
+  .care-item { font-size:13px; color:#444; padding:3px 0; line-height:1.6; display:flex; gap:6px; }
+  .care-item::before { content:'—'; color:var(--text-tertiary); flex-shrink:0; }
+  .video-thumb { width:100%; height:185px; background:#0D0D0D; border-radius:10px; margin-top:16px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+  .play-circle { width:46px; height:46px; background:rgba(255,255,255,0.86); border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .video-label { position:absolute; top:14px; left:50%; transform:translateX(-50%); color:#fff; font-size:17px; font-weight:800; letter-spacing:4px; text-shadow:0 1px 6px rgba(0,0,0,0.5); }
+
+  .recs-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .rec-card { background:var(--white); border-radius:8px; overflow:hidden; border:1px solid var(--border); }
+  .rec-img { height:132px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+  .rec-body { padding:9px 9px 11px; }
+  .rec-brand { font-size:10px; font-weight:800; color:#CC0000; margin-bottom:3px; letter-spacing:0.5px; }
+  .rec-name { font-size:12px; font-weight:500; line-height:1.4; color:var(--text-primary); margin-bottom:5px; }
+  .rec-price { font-size:15px; font-weight:700; color:var(--red); }
+  .rec-price s { font-size:11px; font-weight:400; color:var(--text-tertiary); }
+  .rec-flash { display:inline-block; background:#FF6B35; color:#fff; font-size:9px; font-weight:700; padding:2px 6px; border-radius:3px; margin-top:3px; }
+  .rec-disc { color:var(--red); font-size:11px; margin-top:3px; display:flex; align-items:center; gap:3px; }
+  .rec-meta { display:flex; align-items:center; gap:4px; margin-top:5px; }
+  .rec-rating { font-size:11px; color:var(--text-secondary); }
+  .vid-badge { position:absolute; top:7px; left:7px; background:rgba(0,0,0,0.52); color:#fff; font-size:9px; font-weight:600; padding:2px 6px; border-radius:3px; display:flex; align-items:center; gap:3px; }
+  .presenter-badge { position:absolute; bottom:6px; left:7px; display:flex; align-items:center; gap:4px; }
+  .presenter-av { width:16px; height:16px; border-radius:50%; background:#888; }
+  .presenter-name { color:#fff; font-size:10px; font-weight:500; text-shadow:0 1px 3px rgba(0,0,0,0.6); }
+
+  .not-eligible { background:var(--white); text-align:center; padding:12px 14px 11px; border-top:1px solid var(--border); }
+  .not-eligible p { font-size:13px; font-weight:500; }
+  .not-eligible small { font-size:12px; color:var(--text-secondary); }
+
+  .bottom-bar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:var(--white); border-top:1px solid var(--border); padding:10px 14px 20px; display:flex; align-items:center; gap:10px; z-index:300; }
+  .bbar-icons { display:flex; }
+  .bbar-icon { display:flex; flex-direction:column; align-items:center; gap:2px; padding:2px 9px; cursor:pointer; }
+  .bbar-label { font-size:10px; color:var(--text-secondary); }
+  .bbar-sep { width:1px; height:32px; background:var(--border-mid); margin-right:2px; }
+  .btn-cart { flex:1; padding:11px 6px; border:1.5px solid var(--text-primary); background:transparent; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; line-height:1.3; }
+  .btn-buy { flex:1.3; padding:11px 6px; background:var(--red); color:#fff; border:none; border-radius:6px; font-size:13px; font-weight:700; cursor:pointer; line-height:1.3; }
+
+  .pb { height:88px; }
+
+  /* ─── LIVE BANNER ─── */
+  .live-banner { background:#1A1A1A; color:#fff; font-size:12.5px; font-weight:500; text-align:center; padding:10px 14px; letter-spacing:0.1px; }
+
+  /* ─── SOBRE PRODUTO ─── */
+  .sobre-section { background:var(--white); padding:14px; margin-top:8px; }
+  .sobre-title { font-size:15px; font-weight:700; margin-bottom:14px; }
+  .sobre-sub { font-size:13.5px; font-weight:700; margin-bottom:10px; }
+  .details-grid { display:grid; grid-template-columns:auto 1fr; gap:10px 20px; }
+  .det-k { font-size:12.5px; color:var(--text-secondary); padding:2px 0; }
+  .det-v { font-size:12.5px; color:var(--text-primary); padding:2px 0; line-height:1.5; }
+  .ver-mais-link { color:#0080FF; font-size:13px; font-weight:500; margin-top:10px; display:inline-block; cursor:pointer; }
+  .video-section-title { font-size:15px; font-weight:700; margin:16px 0 10px; }
+  .desc-toggle-row { display:flex; justify-content:center; gap:28px; padding:12px 0 0; border-top:1px solid var(--border); margin-top:4px; }
+  .desc-toggle { font-size:13px; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:4px; }
+  .desc-toggle.active { color:var(--text-primary); }
+
+  /* ─── BOTTOM SHEET ─── */
+  .sheet-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:400; opacity:0; pointer-events:none; transition:opacity 0.25s ease; }
+  .sheet-overlay.open { opacity:1; pointer-events:all; }
+  .sheet { position:fixed; bottom:0; left:50%; transform:translateX(-50%) translateY(100%); width:100%; max-width:430px; background:var(--white); border-radius:16px 16px 0 0; z-index:401; transition:transform 0.32s cubic-bezier(0.32,0.72,0,1); max-height:90vh; overflow-y:auto; }
+  .sheet.open { transform:translateX(-50%) translateY(0); }
+  .sheet-handle { width:36px; height:4px; background:#E0E0E0; border-radius:2px; margin:12px auto 14px; }
+  .sheet-close { position:absolute; top:14px; right:14px; width:28px; height:28px; border-radius:50%; background:#F5F5F5; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .sheet-top { padding:0 14px 12px; border-bottom:1px solid var(--border); }
+  .sheet-price-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .sheet-thumb { width:60px; height:60px; border-radius:8px; background:#F0EDE8; flex-shrink:0; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .sheet-badge { background:var(--red); color:#fff; font-size:11px; font-weight:700; padding:3px 7px; border-radius:4px; }
+  .sheet-price-big { font-size:24px; font-weight:700; color:var(--red); letter-spacing:-0.5px; }
+  .sheet-price-big sup { font-size:12px; font-weight:600; vertical-align:top; margin-top:3px; display:inline-block; }
+  .sheet-price-old { font-size:12px; color:var(--text-tertiary); text-decoration:line-through; }
+  .sheet-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .sheet-tag-r { background:var(--red-light); border:1px solid var(--red-border); color:var(--red); font-size:11px; font-weight:500; padding:3px 7px; border-radius:4px; display:flex; align-items:center; gap:3px; }
+  .sheet-tag-p { background:#FFF0F3; border:1px solid #FFCDD5; color:var(--red); font-size:11px; font-weight:500; padding:3px 7px; border-radius:4px; }
+  .sheet-ship { background:#EEF9F4; border-radius:6px; padding:8px 11px; display:flex; align-items:center; gap:8px; margin-top:8px; }
+  .ship-text { font-size:12px; color:var(--text-primary); flex:1; }
+  .ship-text strong { color:var(--green); }
+  .ship-timer { font-size:12px; color:var(--green); font-weight:600; }
+  .sheet-section { padding:14px 14px 0; }
+  .sheet-section-title { font-size:14px; font-weight:700; margin-bottom:12px; }
+  .color-label { font-size:13px; color:var(--text-secondary); margin-bottom:10px; }
+  .color-label strong { color:var(--text-primary); }
+  .color-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding-bottom:4px; }
+  .color-item { border:1.5px solid var(--border-mid); border-radius:8px; overflow:hidden; cursor:pointer; position:relative; transition:border-color 0.15s; }
+  .color-item.selected { border-color:var(--red); }
+  .color-item.oos { opacity:0.45; }
+  .color-item.oos::after { content:''; position:absolute; inset:0; background:rgba(255,255,255,0.4); }
+  .color-img { width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .color-name { font-size:11px; color:var(--text-primary); text-align:center; padding:5px 4px 7px; line-height:1.3; font-weight:400; }
+  .color-name.red { color:var(--red); font-weight:500; }
+  .expand-icon { position:absolute; top:5px; left:5px; width:18px; height:18px; background:rgba(0,0,0,0.4); border-radius:3px; display:flex; align-items:center; justify-content:center; }
+  .premium-badge { position:absolute; top:0; left:0; background:#8B6914; color:#FFD700; font-size:8px; font-weight:700; padding:2px 5px; border-radius:0 0 4px 0; letter-spacing:0.3px; }
+  .new-badge { position:absolute; top:4px; right:4px; background:#FF4500; color:#fff; font-size:8px; font-weight:700; padding:2px 5px; border-radius:3px; }
+  .pagination-dots { display:flex; justify-content:center; gap:5px; padding:10px 0 4px; }
+  .dot { width:20px; height:3px; border-radius:2px; background:#E0E0E0; }
+  .dot.active { background:var(--text-primary); }
+  .sheet-buy-bar { padding:14px 14px 28px; }
+  .sheet-buy-btn { width:100%; padding:14px; background:var(--red); color:#fff; border:none; border-radius:8px; font-size:15px; font-weight:700; cursor:pointer; letter-spacing:0.1px; }
+
+  /* filter chips */
+  .chip-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .chip { background:#F5F5F5; border-radius:14px; padding:5px 11px; font-size:12px; color:#444; display:flex; align-items:center; gap:5px; cursor:pointer; border:1px solid transparent; }
+  .chip.active { background:#FFF0F3; color:var(--red); border-color:var(--red-border); }
+</style>
+</head>
+<body>
+
+<!-- STATUS BAR -->
+<div class="status">
+  <span class="status-time">17:10</span>
+  <div style="display:flex;align-items:center;gap:5px;">
+    <!-- Wifi -->
+    <svg width="16" height="13" viewBox="0 0 16 13" fill="none"><path d="M8 10.5C8.8 10.5 9.5 11.2 9.5 12S8.8 13.5 8 13.5 6.5 12.8 6.5 12 7.2 10.5 8 10.5Z" fill="#161823"/><path d="M8 7.5C9.4 7.5 10.7 8.1 11.6 9L12.7 7.9C11.5 6.7 9.8 6 8 6C6.2 6 4.5 6.7 3.3 7.9L4.4 9C5.3 8.1 6.6 7.5 8 7.5Z" fill="#161823"/><path d="M8 4.5C10.2 4.5 12.2 5.4 13.7 6.9L14.8 5.8C13 4 10.6 3 8 3C5.4 3 3 4 1.2 5.8L2.3 6.9C3.8 5.4 5.8 4.5 8 4.5Z" fill="#161823"/><path d="M8 1.5C11 1.5 13.7 2.7 15.6 4.7L16.7 3.6C14.5 1.4 11.4 0 8 0C4.6 0 1.5 1.4-0.7 3.6L0.4 4.7C2.3 2.7 5 1.5 8 1.5Z" fill="#161823" opacity="0.4"/></svg>
+    <!-- Battery -->
+    <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.6" y="0.6" width="21.8" height="10.8" rx="2.7" stroke="#161823" stroke-opacity="0.35" stroke-width="1.2"/><rect x="1.5" y="1.5" width="17" height="9" rx="2" fill="#161823"/><path d="M23.5 4V8C24.3 7.7 25 7.1 25 6C25 4.9 24.3 4.3 23.5 4Z" fill="#161823" fill-opacity="0.4"/></svg>
+  </div>
+</div>
+
+<!-- TOP NAV -->
+<div class="topnav">
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1 1L14 14M14 1L1 14" stroke="#161823" stroke-width="1.7" stroke-linecap="round"/></svg>
+  <div class="nav-search">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4.2" stroke="#999" stroke-width="1.4"/><path d="M9.5 9.5L12.5 12.5" stroke="#999" stroke-width="1.4" stroke-linecap="round"/></svg>
+    <span>enxoval para a casa</span>
+  </div>
+  <div class="nav-right">
+    <svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M8.5 1V11.5M8.5 1L5 4.5M8.5 1L12 4.5" stroke="#161823" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M1.5 11.5V15.5H15.5V11.5" stroke="#161823" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="cart-wrap">
+      <svg width="21" height="21" viewBox="0 0 21 21" fill="none"><path d="M2 2.5H4L4.5 5M4.5 5L6 13.5H16L18 5H4.5Z" stroke="#161823" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="17" r="1.4" fill="#161823"/><circle cx="14.5" cy="17" r="1.4" fill="#161823"/></svg>
+      <div class="cart-dot">24</div>
+    </div>
+    <svg width="17" height="4" viewBox="0 0 17 4" fill="none"><circle cx="2" cy="2" r="1.8" fill="#161823"/><circle cx="8.5" cy="2" r="1.8" fill="#161823"/><circle cx="15" cy="2" r="1.8" fill="#161823"/></svg>
+  </div>
+</div>
+
+<!-- PRODUCT IMAGE -->
+<div class="img-wrap">
+  <div class="img-inner">
+    <svg width="320" height="270" viewBox="0 0 320 270" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="panSurface" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#E8D8C0"/><stop offset="100%" stop-color="#C8B09A"/></radialGradient>
+        <radialGradient id="panInner" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#DECCA8"/><stop offset="100%" stop-color="#BEA888"/></radialGradient>
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="rgba(0,0,0,0.15)"/></filter>
+      </defs>
+
+      <!-- Pan 1: Frigideira left back (tilted) -->
+      <g transform="rotate(-13,148,95)" filter="url(#shadow)">
+        <ellipse cx="148" cy="95" rx="47" ry="49" fill="url(#panSurface)"/>
+        <ellipse cx="148" cy="95" rx="37" ry="39" fill="url(#panInner)"/>
+        <rect x="144" y="44" width="8" height="40" rx="4" fill="#5A3628"/>
+        <ellipse cx="148" cy="43" rx="6" ry="4" fill="#6B4232"/>
+        <circle cx="140" cy="88" r="2" fill="#B09070" opacity="0.5"/>
+        <circle cx="154" cy="80" r="1.5" fill="#B09070" opacity="0.45"/>
+        <circle cx="142" cy="102" r="1.2" fill="#B09070" opacity="0.4"/>
+        <circle cx="158" cy="96" r="1.8" fill="#B09070" opacity="0.4"/>
+      </g>
+
+      <!-- Pan 2: Frigideira right back (tilted) -->
+      <g transform="rotate(9,194,88)" filter="url(#shadow)">
+        <ellipse cx="194" cy="88" rx="47" ry="49" fill="url(#panSurface)"/>
+        <ellipse cx="194" cy="88" rx="37" ry="39" fill="url(#panInner)"/>
+        <rect x="190" y="37" width="8" height="40" rx="4" fill="#5A3628"/>
+        <ellipse cx="194" cy="36" rx="6" ry="4" fill="#6B4232"/>
+        <circle cx="186" cy="82" r="2" fill="#B09070" opacity="0.5"/>
+        <circle cx="200" cy="74" r="1.5" fill="#B09070" opacity="0.45"/>
+        <circle cx="188" cy="96" r="1.2" fill="#B09070" opacity="0.4"/>
+      </g>
+
+      <!-- Pan 3: Large pot left-center -->
+      <g filter="url(#shadow)">
+        <ellipse cx="97" cy="198" rx="54" ry="47" fill="url(#panSurface)"/>
+        <ellipse cx="97" cy="198" rx="44" ry="37" fill="url(#panInner)"/>
+        <!-- glass lid -->
+        <ellipse cx="97" cy="157" rx="44" ry="8.5" fill="#C5DCE2" opacity="0.7"/>
+        <ellipse cx="97" cy="155" rx="42" ry="6.5" fill="#D8ECF0" opacity="0.8"/>
+        <ellipse cx="97" cy="150" rx="10" ry="4.5" fill="#7A5A38"/>
+        <!-- handles -->
+        <rect x="38" y="183" width="11" height="20" rx="5" fill="#4A2E1A"/>
+        <rect x="148" y="183" width="11" height="20" rx="5" fill="#4A2E1A"/>
+        <circle cx="89" cy="191" r="2.2" fill="#B09070" opacity="0.5"/>
+        <circle cx="103" cy="202" r="1.8" fill="#B09070" opacity="0.45"/>
+        <circle cx="82" cy="204" r="1.4" fill="#B09070" opacity="0.4"/>
+        <circle cx="108" cy="191" r="1.2" fill="#B09070" opacity="0.4"/>
+      </g>
+
+      <!-- Pan 4: Small saucepan front-left -->
+      <g filter="url(#shadow)">
+        <ellipse cx="80" cy="244" rx="40" ry="33" fill="url(#panSurface)"/>
+        <ellipse cx="80" cy="244" rx="31" ry="25" fill="url(#panInner)"/>
+        <ellipse cx="80" cy="215" rx="31" ry="6.5" fill="#C5DCE2" opacity="0.7"/>
+        <ellipse cx="80" cy="213" rx="29" ry="5" fill="#D8ECF0" opacity="0.8"/>
+        <ellipse cx="80" cy="208" rx="8" ry="3.5" fill="#7A5A38"/>
+        <rect x="33" y="232" width="10" height="17" rx="4" fill="#4A2E1A"/>
+        <rect x="117" y="232" width="10" height="17" rx="4" fill="#4A2E1A"/>
+        <circle cx="73" cy="238" r="1.6" fill="#B09070" opacity="0.5"/>
+        <circle cx="86" cy="248" r="1.3" fill="#B09070" opacity="0.4"/>
+      </g>
+
+      <!-- Pan 5: Large pot right-center -->
+      <g filter="url(#shadow)">
+        <ellipse cx="233" cy="196" rx="58" ry="52" fill="url(#panSurface)"/>
+        <ellipse cx="233" cy="196" rx="48" ry="42" fill="url(#panInner)"/>
+        <ellipse cx="233" cy="147" rx="48" ry="9.5" fill="#C5DCE2" opacity="0.7"/>
+        <ellipse cx="233" cy="145" rx="46" ry="7.5" fill="#D8ECF0" opacity="0.82"/>
+        <ellipse cx="233" cy="139" rx="11" ry="5.5" fill="#7A5A38"/>
+        <rect x="170" y="180" width="12" height="23" rx="5" fill="#4A2E1A"/>
+        <rect x="283" y="180" width="12" height="23" rx="5" fill="#4A2E1A"/>
+        <circle cx="225" cy="188" r="2.5" fill="#B09070" opacity="0.5"/>
+        <circle cx="241" cy="200" r="2" fill="#B09070" opacity="0.45"/>
+        <circle cx="222" cy="204" r="1.5" fill="#B09070" opacity="0.4"/>
+        <circle cx="246" cy="188" r="1.2" fill="#B09070" opacity="0.4"/>
+      </g>
+
+      <!-- Pan 6: Small frying pan right-front -->
+      <g filter="url(#shadow)">
+        <ellipse cx="250" cy="248" rx="46" ry="37" fill="url(#panSurface)"/>
+        <ellipse cx="250" cy="248" rx="36" ry="28" fill="url(#panInner)"/>
+        <rect x="296" y="238" width="52" height="10" rx="5" fill="#5A3628"/>
+        <rect x="290" y="234" width="14" height="18" rx="5" fill="#4A2E1A"/>
+        <circle cx="242" cy="241" r="2" fill="#B09070" opacity="0.5"/>
+        <circle cx="257" cy="254" r="1.6" fill="#B09070" opacity="0.45"/>
+        <circle cx="244" cy="256" r="1.2" fill="#B09070" opacity="0.4"/>
+      </g>
+
+      <!-- Utensils -->
+      <g transform="rotate(-14,147,262)">
+        <rect x="144" y="238" width="6" height="52" rx="3" fill="#7A5A38"/>
+        <ellipse cx="147" cy="241" rx="12" ry="4.5" fill="#7A5A38"/>
+        <rect x="145" y="232" width="4" height="10" rx="2" fill="#6A4A28"/>
+      </g>
+      <g transform="rotate(-3,161,262)">
+        <rect x="158" y="234" width="6" height="56" rx="3" fill="#7A5A38"/>
+        <circle cx="161" cy="238" r="8" fill="#7A5A38"/>
+        <circle cx="161" cy="238" r="4.5" fill="#6A4A28"/>
+      </g>
+      <g transform="rotate(7,176,262)">
+        <rect x="173" y="236" width="6" height="52" rx="3" fill="#7A5A38"/>
+        <path d="M170 236 Q173 226 179 236Z" fill="#7A5A38"/>
+      </g>
+    </svg>
+  </div>
+  <div class="img-counter">1 / 9</div>
+</div>
+
+<!-- FLASH SALE -->
+<div class="flash">
+  <div class="flash-left">
+    <span class="f-badge">-41%</span>
+    <div>
+      <div class="f-label">A partir de R$</div>
+      <div class="f-price"><sup>R$&nbsp;</sup>164,43</div>
+      <div class="f-old">R$ 278,89</div>
+    </div>
+  </div>
+  <div class="flash-right">
+    <div class="f-bolt">
+      <svg width="10" height="15" viewBox="0 0 10 15" fill="none"><path d="M6 0.5L0.5 8.5H5L4 14.5L10 6.5H5.5L6 0.5Z" fill="white"/></svg>
+      Oferta relâmpago
+    </div>
+    <div class="f-timer">Termina em <b>00:03:26</b></div>
+  </div>
+</div>
+
+<!-- PRODUCT INFO -->
+<div class="card">
+  <div class="installments">
+    <svg width="18" height="13" viewBox="0 0 18 13" fill="none"><rect x="0.7" y="0.7" width="16.6" height="11.6" rx="2.3" stroke="#555" stroke-width="1.3"/><rect x="0" y="4" width="18" height="2.2" fill="#555"/><rect x="3" y="8" width="3.5" height="1.5" rx="0.7" fill="#555"/><rect x="7.5" y="8" width="3.5" height="1.5" rx="0.7" fill="#555"/></svg>
+    <span class="install-text">4x R$ <strong>41,10</strong> sem juros</span>
+    <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="#FE2C55" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <div class="promo-row">
+    <div class="ptag">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7 1H11V5L5.5 10.5L1.5 6.5L7 1Z" stroke="#FE2C55" stroke-width="1.2" stroke-linejoin="round"/><circle cx="9" cy="3" r="1" fill="#FE2C55"/></svg>
+      Desconto de R$ 5
+    </div>
+    <div class="ptag">
+      Economize 3% com bônus
+      <svg width="7" height="11" viewBox="0 0 7 11" fill="none"><path d="M1 1L6 5.5L1 10" stroke="#FE2C55" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+  <div class="prod-title">Jogo de Panelas 10 Peças Antiaderente com Tampa de Vidro Temperado D'italia Bianco V...</div>
+  <div class="prod-meta">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="#FFB400"><path d="M6.5 1L8.2 4.8H12.4L9.1 7.2L10.5 11.5L6.5 8.8L2.5 11.5L3.9 7.2L0.6 4.8H4.8L6.5 1Z"/></svg>
+    <span class="meta-text" style="color:#E6A817;font-weight:600;margin-left:-4px;">4.6</span>
+    <span class="meta-text">(20)</span>
+    <div class="meta-sep"></div>
+    <span class="meta-text">260 vendidos</span>
+    <div class="bm-icon">
+      <svg width="18" height="20" viewBox="0 0 18 20" fill="none"><path d="M3 1H15C16.1 1 17 1.9 17 3V19L9 15L1 19V3C1 1.9 1.9 1 3 1Z" stroke="#999" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- SHIPPING -->
+<div class="card">
+  <div class="ship-row">
+    <svg fill="#555" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="22" height="22" style="margin-top:1px;flex-shrink:0;"><path fill-rule="evenodd" clip-rule="evenodd" d="M28.93 10.9H9a1 1 0 01-1-1V8.1a1 1 0 011-1h19.93a5.9 5.9 0 015.9 5.9v1.23c5.97.83 9.62 5.52 9.62 10.39v6.77a3.9 3.9 0 01-3.9 3.9h-.69a6 6 0 01-11.7.11h-8.32a6 6 0 01-11.68 0H5a1 1 0 01-1-1v-1.8a1 1 0 011-1h3.5a6 6 0 0111 0h9a6 6 0 0110.95-.1h1.1a.1.1 0 00.1-.1v-6.78c0-3.21-2.67-6.72-7.72-6.72h-.9a1 1 0 01-1-1V13a2.1 2.1 0 00-2.1-2.1zM2 22.1a1 1 0 011-1h14a1 1 0 011 1v1.8a1 1 0 01-1 1H3a1 1 0 01-1-1v-1.8zm21-6a1 1 0 00-1-1H9a1 1 0 00-1 1v1.8a1 1 0 001 1h13a1 1 0 001-1v-1.8zm11 20.1a2.2 2.2 0 100-4.4 2.2 2.2 0 000 4.4zM16.2 34a2.2 2.2 0 11-4.4 0 2.2 2.2 0 014.4 0z"/></svg>
+    <div class="ship-body">
+      <div class="ship-date">Receba até 30 de abr - 4 de mai</div>
+      <div class="ship-cost">Taxa de envio: <s>R$ 23,90</s>&nbsp; R$ 3,90</div>
+      <div class="ship-promo">Desconto de R$ 20 no frete em pedidos acima de R$ 59</div>
+    </div>
+    <svg width="7" height="12" viewBox="0 0 7 12" fill="none" style="margin-top:2px;flex-shrink:0;"><path d="M1 1L6 6L1 11" stroke="#CCC" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- COLOR OPTIONS -->
+<div class="card">
+  <div class="thumbs-row">
+    <div class="thumb active" style="background:linear-gradient(145deg,#EAD8B6,#D2C2A2);"></div>
+    <div class="thumb" style="background:linear-gradient(145deg,#E6DED0,#D6CEBC);"></div>
+    <div class="thumb" style="background:linear-gradient(145deg,#5C3020,#3C1C0C);"></div>
+    <div class="thumb" style="background:linear-gradient(145deg,#C83030,#8C1C1C);"></div>
+    <div class="thumb" style="background:linear-gradient(145deg,#2C2C2C,#141414);"></div>
+    <div class="thumb" style="background:linear-gradient(145deg,#7C5028,#4C3010);"></div>
+    <div class="thumb" style="background:linear-gradient(145deg,#E0C090,#C0A070);"></div>
+  </div>
+  <div class="thumb-more">
+    21 opções disponíveis
+    <svg width="7" height="11" viewBox="0 0 7 11" fill="none"><path d="M1 1L6 5.5L1 10" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- PROTECTION -->
+<div class="card" style="cursor:pointer;" onclick="openProtModal()">
+  <div class="prot-title">
+    <svg width="16" height="18" viewBox="0 0 16 18" fill="none"><path d="M8 1L2 3.8V9C2 12.6 4.7 15.9 8 17C11.3 15.9 14 12.6 14 9V3.8L8 1Z" stroke="#E6A817" stroke-width="1.5" stroke-linejoin="round"/><path d="M5 9L7 11L11 7" stroke="#E6A817" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Proteção do cliente
+    <svg width="7" height="12" viewBox="0 0 7 12" fill="none" style="margin-left:auto;"><path d="M1 1L6 6L1 11" stroke="#CCC" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <div class="prot-grid">
+    <div class="prot-item"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.8" stroke="#07A345" stroke-width="1.3"/><path d="M4 7L6 9L10 5" stroke="#07A345" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Devolução gratuita</div>
+    <div class="prot-item"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.8" stroke="#07A345" stroke-width="1.3"/><path d="M4 7L6 9L10 5" stroke="#07A345" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Reembolso garantido</div>
+    <div class="prot-item"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.8" stroke="#07A345" stroke-width="1.3"/><path d="M4 7L6 9L10 5" stroke="#07A345" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Pagamento seguro</div>
+    <div class="prot-item"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.8" stroke="#07A345" stroke-width="1.3"/><path d="M4 7L6 9L10 5" stroke="#07A345" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Pedido não enviado</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs" id="tabBar">
+  <div class="tab active" onclick="switchTab(this,'visao')">Visão geral</div>
+  <div class="tab" onclick="switchTab(this,'avaliacoes')">Avaliações</div>
+  <div class="tab" onclick="switchTab(this,'descricao')">Descrição</div>
+  <div class="tab" onclick="switchTab(this,'recomen')">Recomendações</div>
+</div>
+
+<!-- ── TAB VISÃO GERAL ── -->
+<div id="tab-visao">
+  <div class="card">
+    <div class="section-head">
+      <span class="section-title">Ofertas</span>
+      <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="#CCC" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="coupon-card">
+      <div style="flex:1;">
+        <div class="coupon-title">Cupom de envio</div>
+        <div class="coupon-desc">Desconto de R$ 20 no frete em pedidos acima de R$ 59</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;flex-shrink:0;">
+        <span class="coupon-badge">x30</span>
+        <button class="usar-btn">Usar</button>
+      </div>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div class="card">
+    <div class="section-head">
+      <span class="section-title">Avaliações dos clientes (20)</span>
+      <span style="color:var(--red);font-size:13px;display:flex;align-items:center;gap:3px;cursor:pointer;">Ver mais <svg width="6" height="11" viewBox="0 0 6 11" fill="none"><path d="M1 1L5 5.5L1 10" stroke="#FE2C55" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </div>
+    <div class="rating-summary">
+      <span class="big-score">4.6</span>
+      <div>
+        <div style="display:flex;gap:2px;margin-bottom:3px;">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="#FFB400"><path d="M7.5 1L9.5 5.5H14.5L10.5 8.5L12 13L7.5 10L3 13L4.5 8.5L0.5 5.5H5.5L7.5 1Z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="#FFB400"><path d="M7.5 1L9.5 5.5H14.5L10.5 8.5L12 13L7.5 10L3 13L4.5 8.5L0.5 5.5H5.5L7.5 1Z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="#FFB400"><path d="M7.5 1L9.5 5.5H14.5L10.5 8.5L12 13L7.5 10L3 13L4.5 8.5L0.5 5.5H5.5L7.5 1Z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="#FFB400"><path d="M7.5 1L9.5 5.5H14.5L10.5 8.5L12 13L7.5 10L3 13L4.5 8.5L0.5 5.5H5.5L7.5 1Z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 15 15"><defs><linearGradient id="h1" x1="0" x2="1" y1="0" y2="0"><stop offset="58%" stop-color="#FFB400"/><stop offset="58%" stop-color="#E0E0E0"/></linearGradient></defs><path d="M7.5 1L9.5 5.5H14.5L10.5 8.5L12 13L7.5 10L3 13L4.5 8.5L0.5 5.5H5.5L7.5 1Z" fill="url(#h1)"/></svg>
+        </div>
+        <span style="font-size:11.5px;color:var(--text-secondary);">/5 ⓘ</span>
+      </div>
+    </div>
+    <!-- Review 1 -->
+    <div class="review-card">
+      <div class="rev-top">
+        <div class="rev-avatar" style="background:#7A8FA0;"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><circle cx="8.5" cy="6.5" r="3.2" fill="rgba(255,255,255,0.82)"/><path d="M2 16C2 12.7 4.9 10 8.5 10S15 12.7 15 16" stroke="rgba(255,255,255,0.82)" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+        <div>
+          <div class="rev-name">A**a G**k</div>
+          <div class="rev-stars"><svg width="11" height="11" viewBox="0 0 11 11" fill="#FFB400"><path d="M5.5 1L7 4H10.5L7.8 6L8.8 9.5L5.5 7.5L2.2 9.5L3.2 6L0.5 4H4L5.5 1Z"/></svg><svg width="11" height="11" viewBox="0 0 11 11" fill="#FFB400"><path d="M5.5 1L7 4H10.5L7.8 6L8.8 9.5L5.5 7.5L2.2 9.5L3.2 6L0.5 4H4L5.5 1Z"/></svg><svg width="11" height="11" viewBox="0 0 11 11" fill="#FFB400"><path d="M5.5 1L7 4H10.5L7.8 6L8.8 9.5L5.5 7.5L2.2 9.5L3.2 6L0.5 4H4L5.5 1Z"/></svg><svg width="11" height="11" viewBox="0 0 11 11" fill="#FFB400"><path d="M5.5 1L7 4H10.5L7.8 6L8.8 9.5L5.5 7.5L2.2 9.5L3.2 6L0.5 4H4L5.5 1Z"/></svg><svg width="11" height="11" viewBox="0 0 11 11" fill="#FFB400"><path d="M5.5 1L7 4H10.5L7.8 6L8.8 9.5L5.5 7.5L2.2 9.5L3.2 6L0.5 4H4L5.5 1Z"/></svg></div>
+        </div>
+      </div>
+      <div class="rev-tag">Item: Marrom Escuro</div>
+      <div class="rev-text">Gostei das panelas, elas sao pequenas é bom para quem mora sozinho ou em duas pessoas, vamos v...</div>
+      <div class="rev-photo" style="background:#E4D0B4;"><svg width="42" height="38" viewBox="0 0 42 38" fill="none"><ellipse cx="21" cy="22" rx="14" ry="11" fill="#C4B09A"/><ellipse cx="21" cy="22" rx="10" ry="8" fill="#B4A08A"/><ellipse cx="21" cy="12" rx="10" ry="4" fill="#A89070" opacity="0.7"/></svg></div>
+    </div>
+    <!-- Review 2 -->
+    <div class="review-card">
+      <div class="rev-top">
+        <div class="rev-avatar" style="background:#B07878;"><svg width="17" height="17" viewBox="0 0 17 17" fill="none"><circle cx="8.5" cy="6.5" r="3.2" fill="rgba(255,255,255,0.82)"/><path d="M2 16C2 12.7 4.9 10 8.5 10S15 12.7 15 16" stroke="rgba(255,255,255,0.82)" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+        <div>
+          <div class="rev-name">G**e L**s</div>
+          <div class="rev-stars"><svg width="11" height="11" viewBox="0 0 11 11" fill="#FFB400"><path d="M5.5 1L7 4H10.5L7.8 6L8.8 9.5L5.5 7.5L2.2 9.5L3.2 6L0.5 4H4L5.5 1Z"/></svg><svg width="11" height="11" viewBox="0 0 11 11" fill="#FFB400"><path d="M5.5 1L7 4H10.5L7.8 6L8.8 9.5L5.5 7.5L2.2 9.5L3.2 6L0.5 4H4L5.5 1Z"/></svg><svg width="11" height="11" viewBox="0 0 11 11" fill="#FFB400"><path d="M5.5 1L7 4H10.5L7.8 6L8.8 9.5L5.5 7.5L2.2 9.5L3.2 6L0.5 4H4L5.5 1Z"/></svg><svg width="11" height="11" viewBox="0 0 11 11" fill="#FFB400"><path d="M5.5 1L7 4H10.5L7.8 6L8.8 9.5L5.5 7.5L2.2 9.5L3.2 6L0.5 4H4L5.5 1Z"/></svg><svg width="11" height="11" viewBox="0 0 11 11" fill="#FFB400"><path d="M5.5 1L7 4H10.5L7.8 6L8.8 9.5L5.5 7.5L2.2 9.5L3.2 6L0.5 4H4L5.5 1Z"/></svg></div>
+        </div>
+      </div>
+      <div class="rev-tag">Item: Marrom Escuro</div>
+      <div class="rev-attr">Características: <span>Não achei igual da live</span></div>
+      <div class="rev-attr">Material: <span>Mais ou menos mais pra menos...</span></div>
+      <div class="rev-photo" style="background:#141414;display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;">
+        <svg width="20" height="22" viewBox="0 0 20 22" fill="none"><path d="M2 2L18 11L2 20V2Z" fill="rgba(255,255,255,0.75)"/></svg>
+      </div>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div class="card">
+    <div class="store-row">
+      <div class="store-logo"><svg viewBox="0 0 46 46" width="46" height="46"><rect width="46" height="46" rx="8" fill="#0D1B8E"/><text x="3" y="16" font-size="7.5" font-weight="800" fill="white" font-family="Arial,sans-serif">99STORE</text><text x="7" y="27" font-size="7" font-weight="700" fill="white" font-family="Arial,sans-serif">SELECT</text></svg></div>
+      <div class="store-info"><div class="store-name">99Store Select</div><div class="store-sub">845 vendido(s)</div></div>
+      <button class="visit-btn">Visitar</button>
+    </div>
+    <div class="store-metric" style="margin-top:10px;"><strong>100%</strong> envios pontuais</div>
+  </div>
+</div>
+
+<!-- ── TAB AVALIAÇÕES ── -->
+<div id="tab-avaliacoes" style="display:none;">
+  <!-- Store + Sobre este produto -->
+  <div class="card" style="margin-top:0;">
+    <div class="store-row"><div class="store-logo"><svg viewBox="0 0 46 46" width="46" height="46"><rect width="46" height="46" rx="8" fill="#0D1B8E"/><text x="3" y="16" font-size="7.5" font-weight="800" fill="white" font-family="Arial,sans-serif">99STORE</text><text x="7" y="27" font-size="7" font-weight="700" fill="white" font-family="Arial,sans-serif">SELECT</text></svg></div><div class="store-info"><div class="store-name">99Store Select</div><div class="store-sub">845 vendido(s)</div></div><button class="visit-btn">Visitar</button></div>
+    <div class="store-metric" style="margin-top:10px;"><strong>100%</strong> envios pontuais</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Sobre este produto -->
+  <div class="sobre-section">
+    <div class="sobre-title">Sobre este produto</div>
+    <div class="sobre-sub">Detalhes</div>
+    <div class="details-grid">
+      <span class="det-k">Recurso</span>
+      <span class="det-v">Fogão A Gás Convencional, Livres de PFOA, Antiaderente, Fácil Lavagem, Com alça, Com tampa</span>
+      <span class="det-k">Material</span>
+      <span class="det-v">Vidro Temperado, Nylon, Baquelite, Tefl...</span>
+    </div>
+    <span class="ver-mais-link">Ver mais</span>
+    <div class="video-section-title">Vídeo</div>
+    <div class="video-thumb" style="margin-top:0;">
+      <div class="video-label">SUPER 10</div>
+      <div class="play-circle"><svg width="16" height="18" viewBox="0 0 16 18" fill="none"><path d="M2 1.5L14.5 9L2 16.5V1.5Z" fill="#1A1A1A"/></svg></div>
+    </div>
+    <div style="margin-top:16px;font-size:14px;font-weight:700;margin-bottom:6px;">Descrição</div>
+    <div style="font-size:13px;color:var(--text-primary);font-weight:600;margin-bottom:6px;">Jogo de Panelas Antiaderente 10 peças Bianco Vanilla</div>
+  </div>
+</div>
+
+<!-- ── TAB DESCRIÇÃO ── -->
+<div id="tab-descricao" style="display:none;">
+  <div class="card">
+    <div class="desc-heading">Jogo de Panelas Antiaderente 10 peças Bianco Vanilla - Varias Cores - D'Itália</div>
+    <p class="desc-p">Conjunto de panelas Bianco da D'Itália, ideal para solteiros ou para quem busca praticidade na cozinha. Fabricadas em alumínio, com tampas de vidro com saída de vapor. Revestimento colorido que proporciona beleza à cozinha. Cozimento uniforme devido ao revestimento interno e externo, mantendo as panelas bonitas por mais tempo.</p>
+    <p class="desc-p">Fáceis de limpar, pois o antiaderente impede que os alimentos grudem. Utilizáveis em fogão a gás e compatíveis com máquina de lavar louças.</p>
+    <div class="desc-heading">Composição:</div>
+    <ul class="desc-list">
+      <li>Panela Nº 16 antiaderente com tampa de vidro: diâmetro 16 cm, capacidade 1,4 L, altura 7 cm.</li>
+      <li>Panela Nº 18 antiaderente com tampa de vidro: diâmetro 18 cm, capacidade 2,0L, altura 7,5 cm.</li>
+      <li>Caçarola Nº 18 antiaderente com tampa de vidro: diâmetro 18 cm, capacidade 2,0L, altura 7,0 cm.</li>
+      <li>Caçarola Nº 20 antiaderente com tampa de vidro: diâmetro 20 cm, capacidade 2,7L, altura 9,0 cm.</li>
+      <li>Leiteira Nº 14 antiaderente: diâmetro 14,0 cm, capacidade 1,6L, altura 10,5 cm.</li>
+      <li>Frigideira Francesa Nº 18 antiaderente: diâmetro 18,0 cm, capacidade 0,6L, altura 3,5 cm.</li>
+      <li>Frigideira Francesa Nº 20 antiaderente: diâmetro 20,0 cm, capacidade 0,7L, altura 3,0 cm.</li>
+      <li>Escumadeira em Nylon.</li>
+      <li>Colher em Nylon.</li>
+      <li>Espátula em Nylon.</li>
+    </ul>
+    <div class="spec-grid">
+      <span class="spec-k">Material</span><span class="spec-v">Alumínio Teflon Antiaderente</span>
+      <span class="spec-k">Tampas</span><span class="spec-v">Vidro Temperado</span>
+      <span class="spec-k">Alças e Poméis</span><span class="spec-v">Baquelite</span>
+      <span class="spec-k">Espessura</span><span class="spec-v">1,0 mm</span>
+    </div>
+    <p class="desc-p">Teflon com 05 camadas que permite cozinhar com menos óleo.</p>
+    <div class="desc-heading">Cuidados especiais:</div>
+    <div class="care-item">Utilizar em fogão a gás, em fogo médio.</div>
+    <div class="care-item">Utilizar espátulas de plástico, nylon ou silicone.</div>
+    <div class="care-item">Evitar contato das espátulas com a panela quente.</div>
+    <div class="care-item">Lavar com detergente neutro e esponja macia.</div>
+    <div class="desc-heading">Preparo para o primeiro uso:</div>
+    <p class="desc-p">Após lavar e secar, untar a parte interna com óleo e aquecer em fogo médio ou baixo por um minuto. Deixar esfriar antes de usar.</p>
+    <div class="video-thumb">
+      <div class="video-label">SUPER 10</div>
+      <div class="play-circle"><svg width="16" height="18" viewBox="0 0 16 18" fill="none"><path d="M2 1.5L14.5 9L2 16.5V1.5Z" fill="#1A1A1A"/></svg></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB RECOMENDAÇÕES ── -->
+<div id="tab-recomen" style="display:none;">
+  <div class="card">
+    <div class="section-title" style="margin-bottom:13px;">Você também pode gostar</div>
+    <div class="recs-grid">
+      <div class="rec-card">
+        <div class="rec-img" style="background:#2A1A0A;">
+          <svg width="80" height="68" viewBox="0 0 80 68" fill="none"><ellipse cx="40" cy="42" rx="28" ry="22" fill="#6C4028"/><ellipse cx="40" cy="42" rx="22" ry="17" fill="#5A3018"/><ellipse cx="40" cy="24" rx="22" ry="6" fill="#3A1A08" opacity="0.9"/><rect x="29" y="19" width="6" height="3" rx="1.5" fill="#2A1008"/><circle cx="32" cy="36" r="1.5" fill="#7A5030" opacity="0.6"/><circle cx="46" cy="44" r="1.2" fill="#7A5030" opacity="0.5"/></svg>
+          <div class="vid-badge"><svg width="7" height="8" viewBox="0 0 7 8" fill="none"><rect x="0" y="0" width="2.5" height="8" rx="0.8" fill="white"/><rect x="4" y="0" width="2.5" height="8" rx="0.8" fill="white"/></svg>00:16</div>
+          <div class="presenter-badge"><div class="presenter-av"></div><span class="presenter-name">Garcia</span></div>
+        </div>
+        <div class="rec-body">
+          <div class="rec-name">Jogo de Panelas 10 Peças Antiaderent...</div>
+          <div class="rec-price">R$ <b>194</b>,00 <s>R$ 258,99</s></div>
+          <div class="rec-flash">⚡ Oferta Relâmpago</div>
+          <div class="rec-meta"><svg width="11" height="11" viewBox="0 0 11 11" fill="#FFB400"><path d="M5.5 1L7 4H10.5L7.8 6L8.8 9.5L5.5 7.5L2.2 9.5L3.2 6L0.5 4H4L5.5 1Z"/></svg><span class="rec-rating">4.2 · 19,9K vendidos</span></div>
+        </div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-img" style="background:#F5F0E8;"><svg width="80" height="68" viewBox="0 0 80 68" fill="none"><ellipse cx="40" cy="40" rx="26" ry="22" fill="#DDD0BB"/><ellipse cx="40" cy="40" rx="20" ry="17" fill="#CFC0A5"/><rect x="53" y="34" width="20" height="5" rx="2.5" fill="#8B2020"/><rect x="16" y="34" width="9" height="5" rx="2.5" fill="#8B2020"/><ellipse cx="40" cy="23" rx="20" ry="5" fill="#C8B09A" opacity="0.8"/></svg></div>
+        <div class="rec-body">
+          <div class="rec-brand">MARPAL</div>
+          <div class="rec-name">Jogo de Panelas 16 Peças...</div>
+          <div class="rec-price">R$ <b>168</b>,23 <s>R$ 229,89</s></div>
+          <div class="rec-disc"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5.5 1.5H8.5V4.5L4 9L1 6L5.5 1.5Z" stroke="#FE2C55" stroke-width="1.1" stroke-linejoin="round"/><circle cx="7" cy="3" r="0.8" fill="#FE2C55"/></svg>Desconto de R$ 5</div>
+          <div class="rec-meta"><svg width="11" height="11" viewBox="0 0 11 11" fill="#FFB400"><path d="M5.5 1L7 4H10.5L7.8 6L8.8 9.5L5.5 7.5L2.2 9.5L3.2 6L0.5 4H4L5.5 1Z"/></svg><span class="rec-rating">4.7 · 42 vendidos</span></div>
+        </div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-img" style="background:#1C1C1C;"><svg width="80" height="68" viewBox="0 0 80 68" fill="none"><ellipse cx="40" cy="42" rx="28" ry="22" fill="#333"/><ellipse cx="40" cy="42" rx="22" ry="17" fill="#252525"/><ellipse cx="40" cy="24" rx="22" ry="6" fill="#1A1A1A" opacity="0.9"/></svg><div class="vid-badge"><svg width="7" height="8" viewBox="0 0 7 8" fill="none"><path d="M1 0.5L6.5 4L1 7.5V0.5Z" fill="white"/></svg>00:29</div></div>
+        <div class="rec-body">
+          <div class="rec-name">Jogo de Panelas 10 Peças...</div>
+          <div class="rec-price">R$ <b>194</b>,00 <s>R$ 258,99</s></div>
+          <div class="rec-flash">⚡ Oferta Relâmpago</div>
+          <div class="rec-meta"><svg width="11" height="11" viewBox="0 0 11 11" fill="#FFB400"><path d="M5.5 1L7 4H10.5L7.8 6L8.8 9.5L5.5 7.5L2.2 9.5L3.2 6L0.5 4H4L5.5 1Z"/></svg><span class="rec-rating">4.2 · 19,9K vendidos</span></div>
+        </div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-img" style="background:#F0EEEA;"><svg width="80" height="68" viewBox="0 0 80 68" fill="none"><ellipse cx="40" cy="40" rx="26" ry="22" fill="#DDD0BB"/><ellipse cx="40" cy="40" rx="20" ry="17" fill="#CFC0A5"/><rect x="53" y="34" width="20" height="5" rx="2.5" fill="#7A5838"/><rect x="16" y="34" width="9" height="5" rx="2.5" fill="#7A5838"/><ellipse cx="40" cy="23" rx="20" ry="5" fill="#C8B09A" opacity="0.8"/></svg></div>
+        <div class="rec-body">
+          <div class="rec-name">Kit Panelas 16 ou 10 Peças...</div>
+          <div class="rec-price">R$ <b>171</b>,18 <s>R$ 198,00</s></div>
+          <div class="rec-disc"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5.5 1.5H8.5V4.5L4 9L1 6L5.5 1.5Z" stroke="#FE2C55" stroke-width="1.1" stroke-linejoin="round"/><circle cx="7" cy="3" r="0.8" fill="#FE2C55"/></svg>Desconto de R$ 5</div>
+          <div class="rec-meta"><svg width="11" height="11" viewBox="0 0 11 11" fill="#FFB400"><path d="M5.5 1L7 4H10.5L7.8 6L8.8 9.5L5.5 7.5L2.2 9.5L3.2 6L0.5 4H4L5.5 1Z"/></svg><span class="rec-rating">4.7 · 42 vendidos</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOT ELIGIBLE -->
+<div class="not-eligible">
+  <p>Este produto não é elegível para comissão</p>
+  <small>Toque para encontrar produtos semelhantes</small>
+</div>
+
+<!-- LIVE BANNER -->
+<div class="live-banner" id="liveBanner">Promoção exclusiva da LIVE em breve</div>
+
+<div class="pb"></div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar" id="bottomBar">
+  <div class="bbar-icons">
+    <div class="bbar-icon">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 2.5H5L5.5 6M5.5 6L7 15H16.5L18.5 6H5.5Z" stroke="#161823" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="18.5" r="1.5" fill="#161823"/><circle cx="15" cy="18.5" r="1.5" fill="#161823"/></svg>
+      <span class="bbar-label">Loja</span>
+    </div>
+    <div class="bbar-icon">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M4 3.5H18C19.1 3.5 20 4.4 20 5.5V14C20 15.1 19.1 16 18 16H7.5L3 20.5V5.5C3 4.4 3.9 3.5 5 3.5" stroke="#161823" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="bbar-label">Chat</span>
+    </div>
+  </div>
+  <div class="bbar-sep"></div>
+  <button class="btn-cart" onclick="openSheet('cart')">Adicionar<br>ao carrinho</button>
+  <button class="btn-buy" onclick="openSheet('buy')">Comprar<br>com cupom</button>
+</div>
+
+<!-- ════ BOTTOM SHEET OVERLAY ════ -->
+<div class="sheet-overlay" id="overlay" onclick="closeSheet()"></div>
+
+<!-- ════ BOTTOM SHEET ════ -->
+<div class="sheet" id="colorSheet">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeSheet()">
+    <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 1L10 10M10 1L1 10" stroke="#333" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+
+  <!-- Sheet price header -->
+  <div class="sheet-top">
+    <div class="sheet-price-row">
+      <div class="sheet-thumb">
+        <svg width="52" height="48" viewBox="0 0 52 48" fill="none"><ellipse cx="26" cy="30" rx="18" ry="15" fill="#DDD0BB"/><ellipse cx="26" cy="30" rx="14" ry="11" fill="#CFC0A5"/><ellipse cx="26" cy="17" rx="14" ry="5" fill="#C5DCE2" opacity="0.8"/><ellipse cx="26" cy="15" rx="7" ry="3" fill="#7A5A38"/><rect x="8" y="22" width="6" height="12" rx="3" fill="#4A2E1A"/><rect x="38" y="22" width="6" height="12" rx="3" fill="#4A2E1A"/></svg>
+      </div>
+      <div>
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">
+          <span class="sheet-badge">-6%</span>
+          <span class="sheet-price-big"><sup>R$&nbsp;</sup>243,99</span>
+        </div>
+        <div class="sheet-price-old">R$ 258,99</div>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="margin-left:auto;opacity:0.5;flex-shrink:0;cursor:pointer;"><circle cx="9" cy="9" r="7.5" stroke="#666" stroke-width="1.3"/><path d="M9 5V9.5L11.5 12" stroke="#666" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </div>
+    <div class="sheet-tags">
+      <div class="sheet-tag-r">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5.5 1H8.5V4L4 9L1 6L5.5 1Z" stroke="#FE2C55" stroke-width="1" stroke-linejoin="round"/><circle cx="7" cy="2.5" r="0.7" fill="#FE2C55"/></svg>
+        Desconto de R$ 15
+      </div>
+      <div class="sheet-tag-p">Economize 3% com bônus</div>
+    </div>
+    <div class="sheet-ship">
+      <svg fill="#07A345" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="20" height="20" style="flex-shrink:0;"><path fill-rule="evenodd" clip-rule="evenodd" d="M28.93 10.9H9a1 1 0 01-1-1V8.1a1 1 0 011-1h19.93a5.9 5.9 0 015.9 5.9v1.23c5.97.83 9.62 5.52 9.62 10.39v6.77a3.9 3.9 0 01-3.9 3.9h-.69a6 6 0 01-11.7.11h-8.32a6 6 0 01-11.68 0H5a1 1 0 01-1-1v-1.8a1 1 0 011-1h3.5a6 6 0 0111 0h9a6 6 0 0110.95-.1h1.1a.1.1 0 00.1-.1v-6.78c0-3.21-2.67-6.72-7.72-6.72h-.9a1 1 0 01-1-1V13a2.1 2.1 0 00-2.1-2.1zM2 22.1a1 1 0 011-1h14a1 1 0 011 1v1.8a1 1 0 01-1 1H3a1 1 0 01-1-1v-1.8zm21-6a1 1 0 00-1-1H9a1 1 0 00-1 1v1.8a1 1 0 001 1h13a1 1 0 001-1v-1.8zm11 20.1a2.2 2.2 0 100-4.4 2.2 2.2 0 000 4.4zM16.2 34a2.2 2.2 0 11-4.4 0 2.2 2.2 0 014.4 0z"/></svg>
+      <span class="ship-text">O desconto de <strong>R$ 20</strong> no frete está...</span>
+      <span class="ship-timer" id="sheetTimer">06:43:54</span>
+    </div>
+  </div>
+
+  <!-- Color Grid -->
+  <div class="sheet-section">
+    <div class="sheet-section-title">Cor (23)</div>
+
+    <!-- Page 1 -->
+    <div id="colorPage1">
+      <div class="color-grid">
+        <!-- Vanilla (selected) -->
+        <div class="color-item selected" onclick="selectColor(this)">
+          <div class="expand-icon"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 4H7M4 1V7" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+          <div class="color-img" style="background:linear-gradient(135deg,#EAD8B6,#D2C2A2);padding:4px;">
+            <svg width="58" height="52" viewBox="0 0 58 52" fill="none"><ellipse cx="29" cy="34" rx="20" ry="16" fill="#DDD0BB"/><ellipse cx="29" cy="34" rx="15" ry="12" fill="#CFC0A5"/><ellipse cx="29" cy="20" rx="15" ry="5" fill="#C8DCE0" opacity="0.7"/><ellipse cx="29" cy="18" rx="7" ry="3.5" fill="#7A5A38"/><rect x="10" y="26" width="6" height="14" rx="3" fill="#4A2E1A"/><rect x="42" y="26" width="6" height="14" rx="3" fill="#4A2E1A"/></svg>
+          </div>
+          <div class="color-name red">Vanilla</div>
+        </div>
+        <!-- Ivory -->
+        <div class="color-item" onclick="selectColor(this)">
+          <div class="expand-icon"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 4H7M4 1V7" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+          <div style="position:absolute;top:5px;right:5px;display:flex;gap:2px;"><div style="width:8px;height:8px;border-radius:50%;background:#3A2010;"></div><div style="width:8px;height:8px;border-radius:50%;background:#7A5A38;"></div></div>
+          <div class="color-img" style="background:#F5F0E5;padding:4px;">
+            <svg width="58" height="52" viewBox="0 0 58 52" fill="none"><ellipse cx="29" cy="34" rx="20" ry="16" fill="#E8DCB8"/><ellipse cx="29" cy="34" rx="15" ry="12" fill="#DED0A8"/><ellipse cx="29" cy="20" rx="15" ry="5" fill="#C8DCE0" opacity="0.7"/><ellipse cx="29" cy="18" rx="7" ry="3.5" fill="#7A5A38"/><rect x="10" y="26" width="6" height="14" rx="3" fill="#4A2E1A"/><rect x="42" y="26" width="6" height="14" rx="3" fill="#4A2E1A"/><circle cx="22" cy="29" r="1.5" fill="#C0A880" opacity="0.6"/><circle cx="35" cy="37" r="1.2" fill="#C0A880" opacity="0.5"/></svg>
+          </div>
+          <div class="color-name">Ivory</div>
+        </div>
+        <!-- Marrom Escuro -->
+        <div class="color-item" onclick="selectColor(this)">
+          <div class="expand-icon"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 4H7M4 1V7" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+          <div class="color-img" style="background:#3A2010;padding:4px;">
+            <svg width="58" height="52" viewBox="0 0 58 52" fill="none"><ellipse cx="29" cy="34" rx="20" ry="16" fill="#5C3420"/><ellipse cx="29" cy="34" rx="15" ry="12" fill="#4A2810"/><ellipse cx="29" cy="20" rx="15" ry="5" fill="#2A1808" opacity="0.9"/><rect x="10" y="26" width="6" height="14" rx="3" fill="#1A0C04"/><rect x="42" y="26" width="6" height="14" rx="3" fill="#1A0C04"/></svg>
+          </div>
+          <div class="color-name">Marrom Escuro</div>
+        </div>
+        <!-- C (hidden/partial) -->
+        <div class="color-item" onclick="selectColor(this)">
+          <div class="expand-icon"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 4H7M4 1V7" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+          <div class="color-img" style="background:#D4C4A4;padding:4px;">
+            <svg width="58" height="52" viewBox="0 0 58 52" fill="none"><ellipse cx="29" cy="34" rx="20" ry="16" fill="#C8B898"/><ellipse cx="29" cy="34" rx="15" ry="12" fill="#B8A888"/></svg>
+          </div>
+          <div class="color-name">Caramelo</div>
+        </div>
+        <!-- Vanilla + Pressão -->
+        <div class="color-item" onclick="selectColor(this)" style="position:relative;">
+          <div class="color-img" style="background:#F0EDE5;padding:3px;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:2px;">
+            <div style="font-size:7px;font-weight:700;color:#666;padding:1px 3px;background:#E0DAD0;border-radius:2px;align-self:stretch;text-align:center;">+ Panela de Pressão</div>
+            <svg width="58" height="40" viewBox="0 0 58 40" fill="none"><ellipse cx="29" cy="28" rx="20" ry="14" fill="#DDD0BB"/><ellipse cx="29" cy="28" rx="15" ry="10" fill="#CFC0A5"/><ellipse cx="10" cy="24" rx="6" ry="10" fill="#DDD0BB"/><rect x="8" y="14" width="4" height="6" rx="1" fill="#7A5A38"/></svg>
+          </div>
+          <div class="color-name" style="font-size:10px;">Vanilla + Panela de Pressão 4....</div>
+        </div>
+        <!-- Cereja -->
+        <div class="color-item" onclick="selectColor(this)">
+          <div class="expand-icon"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 4H7M4 1V7" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+          <div class="color-img" style="background:#FFF0F0;padding:4px;">
+            <svg width="58" height="52" viewBox="0 0 58 52" fill="none"><ellipse cx="29" cy="34" rx="20" ry="16" fill="#C03030"/><ellipse cx="29" cy="34" rx="15" ry="12" fill="#A02020"/><ellipse cx="29" cy="20" rx="15" ry="5" fill="#901818" opacity="0.9"/><rect x="10" y="26" width="6" height="14" rx="3" fill="#1A1A1A"/><rect x="42" y="26" width="6" height="14" rx="3" fill="#1A1A1A"/></svg>
+          </div>
+          <div class="color-name">Cereja</div>
+        </div>
+        <!-- Preto -->
+        <div class="color-item" onclick="selectColor(this)">
+          <div class="expand-icon"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 4H7M4 1V7" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+          <div class="color-img" style="background:#1A1A1A;padding:4px;">
+            <svg width="58" height="52" viewBox="0 0 58 52" fill="none"><ellipse cx="29" cy="34" rx="20" ry="16" fill="#2C2C2C"/><ellipse cx="29" cy="34" rx="15" ry="12" fill="#1A1A1A"/><ellipse cx="29" cy="20" rx="15" ry="5" fill="#111" opacity="0.9"/><rect x="10" y="26" width="6" height="14" rx="3" fill="#0A0A0A"/><rect x="42" y="26" width="6" height="14" rx="3" fill="#0A0A0A"/></svg>
+          </div>
+          <div class="color-name">Preto</div>
+        </div>
+        <!-- Rosê -->
+        <div class="color-item" onclick="selectColor(this)">
+          <div class="expand-icon"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 4H7M4 1V7" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+          <div class="color-img" style="background:#FFF0F5;padding:4px;">
+            <svg width="58" height="52" viewBox="0 0 58 52" fill="none"><ellipse cx="29" cy="34" rx="20" ry="16" fill="#E0A0B8"/><ellipse cx="29" cy="34" rx="15" ry="12" fill="#D08898"/><ellipse cx="29" cy="20" rx="15" ry="5" fill="#C0D4D8" opacity="0.7"/><rect x="10" y="26" width="6" height="14" rx="3" fill="#1A1A1A"/><rect x="42" y="26" width="6" height="14" rx="3" fill="#1A1A1A"/></svg>
+          </div>
+          <div class="color-name">Rosê</div>
+        </div>
+      </div>
+      <div class="pagination-dots" style="margin-top:10px;">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Buy button -->
+  <div class="sheet-buy-bar">
+    <button class="sheet-buy-btn" id="sheetBuyBtn">Comprar com cupom</button>
+  </div>
+</div>
+
+<!-- ════ PROTEÇÃO DO CLIENTE MODAL ════ -->
+<div class="sheet-overlay" id="protOverlay" onclick="closeProtModal()"></div>
+
+<div class="sheet" id="protSheet" style="max-height:92vh;display:flex;flex-direction:column;">
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:center;padding:16px 14px 13px;border-bottom:1px solid var(--border);position:relative;flex-shrink:0;">
+    <span style="font-size:16px;font-weight:700;color:var(--text-primary);">Proteção do cliente</span>
+    <button class="sheet-close" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);" onclick="closeProtModal()">
+      <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 1L10 10M10 1L1 10" stroke="#333" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <!-- Scrollable body -->
+  <div style="overflow-y:auto;padding:0 16px 40px;flex:1;">
+
+    <!-- ── 1. Devoluções ── -->
+    <div style="padding-top:22px;margin-bottom:22px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:#F5EDD8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <img src="data:image/jpeg;base64,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" style="width:26px;height:26px;object-fit:contain;display:block;">
+        </div>
+        <span style="font-size:15px;font-weight:700;color:#7A5200;line-height:1.3;">Devoluções gratuitas em 30 dias</span>
+      </div>
+      <p style="font-size:13.5px;color:#444;line-height:1.7;margin-bottom:9px;">Devolução gratuita em até 30 dias após o recebimento do seu produto. Os Termos e Condições se aplicam.</p>
+      <span style="font-size:13.5px;color:#0080FF;cursor:pointer;font-weight:400;">Saiba como solicitar um reembolso</span>
+    </div>
+
+    <div style="height:1px;background:var(--border);margin-bottom:22px;"></div>
+
+    <!-- ── 2. Pagamento seguro ── -->
+    <div style="margin-bottom:22px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:#F5EDD8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <img src="data:image/png;base64,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" style="width:26px;height:26px;object-fit:contain;display:block;">
+        </div>
+        <span style="font-size:15px;font-weight:700;color:#7A5200;line-height:1.3;">Pagamento seguro</span>
+      </div>
+      <p style="font-size:13.5px;color:#444;line-height:1.7;margin-bottom:8px;">Para garantir a segurança, as informações do seu cartão são criptografadas e protegidas contra acesso não autorizado.</p>
+      <p style="font-size:13.5px;color:#444;line-height:1.7;margin-bottom:14px;">O TikTok Shop não vende, aluga ou cede suas informações pessoais a terceiros para fins de marketing.</p>
+
+      <p style="font-size:13px;color:#444;font-weight:400;margin-bottom:9px;">Aceitamos pagamento de:</p>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;">
+        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:6px 9px;background:#fff;display:flex;align-items:center;justify-content:center;">
+          <svg width="36" height="22" viewBox="0 0 36 22" fill="none"><circle cx="13" cy="11" r="10" fill="#EB001B"/><circle cx="23" cy="11" r="10" fill="#F79E1B"/><path d="M18 4.5C20 6 21.3 8.3 21.3 11s-1.3 5-3.3 6.5C13 15 11.7 12.7 11.7 11s1.3-5 3.3-6.5" fill="#FF5F00"/></svg>
+        </div>
+        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:6px 12px;background:#fff;display:flex;align-items:center;">
+          <svg width="42" height="14" viewBox="0 0 42 14"><text x="0" y="13" font-size="14" font-weight="900" fill="#1A1F71" font-family="Arial,sans-serif" letter-spacing="0.5">VISA</text></svg>
+        </div>
+        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:6px 10px;background:#fff;display:flex;align-items:center;gap:4px;">
+          <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="#FFD100"/></svg>
+          <span style="font-size:12px;font-weight:700;color:#1A1A1A;">elo</span>
+        </div>
+        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:6px 9px;background:#006FCF;display:flex;align-items:center;">
+          <span style="font-size:8px;font-weight:800;color:#fff;letter-spacing:0.5px;line-height:1.3;text-align:center;">AMERICAN<br>EXPRESS</span>
+        </div>
+        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:6px 8px;background:#fff;display:flex;align-items:center;">
+          <svg width="38" height="20" viewBox="0 0 38 20"><rect x="0" y="0" width="2.2" height="20" fill="#111"/><rect x="3.5" y="0" width="1.2" height="20" fill="#111"/><rect x="6" y="0" width="3" height="20" fill="#111"/><rect x="10.5" y="0" width="1.2" height="20" fill="#111"/><rect x="13" y="0" width="2.2" height="20" fill="#111"/><rect x="16.5" y="0" width="1.2" height="20" fill="#111"/><rect x="19" y="0" width="3" height="20" fill="#111"/><rect x="23.5" y="0" width="1.2" height="20" fill="#111"/><rect x="26" y="0" width="2.2" height="20" fill="#111"/><rect x="29.5" y="0" width="1.2" height="20" fill="#111"/><rect x="32" y="0" width="4" height="20" fill="#111"/><text x="0" y="34" font-size="8" fill="#111" font-family="Arial">BOLETO</text></svg>
+        </div>
+        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:6px 9px;background:#fff;display:flex;align-items:center;">
+          <svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 2L8.5 5.5H5L2 12L5 15.5V19L12 22L19 19V15.5L22 12L19 5.5H15.5L12 2Z" fill="#32BCAD"/><path d="M9.5 9.5L12 12M12 12L14.5 9.5M12 12L14.5 14.5M12 12L9.5 14.5" stroke="white" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
+        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:6px 11px;background:#fff;display:flex;align-items:center;">
+          <span style="font-size:11.5px;font-weight:500;color:#444;letter-spacing:-0.3px;">G Pay</span>
+        </div>
+      </div>
+
+      <p style="font-size:13px;color:#444;font-weight:400;margin-bottom:9px;">Certificações de segurança:</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:7px 11px;background:#fff;display:flex;align-items:center;gap:5px;">
+          <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="5" cy="7" r="5" fill="#EB001B"/><circle cx="9" cy="7" r="5" fill="#F79E1B" opacity="0.9"/></svg>
+          <span style="font-size:9.5px;font-weight:700;color:#1A1F71;line-height:1.3;">MasterCard<br>SecureCode</span>
+        </div>
+        <div style="border:1.2px solid #E0E0E0;border-radius:7px;padding:7px 11px;background:#fff;display:flex;align-items:center;gap:5px;">
+          <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="7" fill="#1A1F71"/><path d="M3.5 7L5.5 9.5L10.5 4.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span style="font-size:9.5px;font-weight:700;color:#1A1F71;line-height:1.3;">Verified by<br>VISA</span>
+        </div>
+      </div>
+
+      <p style="font-size:13.5px;color:#444;line-height:1.65;">Para obter informações sobre como o TikTok Shop usa seus dados pessoais, consulte nossa <span style="color:var(--text-primary);font-weight:500;cursor:pointer;">Privacy Policy</span>.</p>
+    </div>
+
+    <div style="height:1px;background:var(--border);margin-bottom:22px;"></div>
+
+    <!-- ── 3. Reembolso ── -->
+    <div style="margin-bottom:22px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:#F5EDD8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <img src="data:image/png;base64,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" style="width:26px;height:26px;object-fit:contain;display:block;">
+        </div>
+        <span style="font-size:15px;font-weight:700;color:#7A5200;line-height:1.3;">Reembolso se algo der errado</span>
+      </div>
+      <p style="font-size:13.5px;color:#444;line-height:1.7;">Se o seu pedido for perdido ou danificado durante o transporte antes de chegar, reembolsaremos automaticamente o seu dinheiro. Você não precisa fazer nada.</p>
+    </div>
+
+    <div style="height:1px;background:var(--border);margin-bottom:22px;"></div>
+
+    <!-- ── 4. Pedido não enviado ── -->
+    <div style="margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:#F5EDD8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <img src="data:image/png;base64,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" style="width:26px;height:26px;object-fit:contain;display:block;">
+        </div>
+        <span style="font-size:15px;font-weight:700;color:#7A5200;line-height:1.3;">Se o seu pedido não for enviado no prazo</span>
+      </div>
+      <p style="font-size:13.5px;color:#444;line-height:1.7;">Você não precisa fazer nada. Se ele não for despachado em até 7 dias úteis, cancelaremos o seu pedido e reembolsaremos automaticamente o seu dinheiro.</p>
+    </div>
+
+  </div>
+</div>
+<script>
+function switchTab(el, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['visao','avaliacoes','descricao','recomen'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === id ? 'block' : 'none';
+  });
+}
+
+function openSheet(mode) {
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('colorSheet').classList.add('open');
+  const btn = document.getElementById('sheetBuyBtn');
+  if (mode === 'cart') {
+    btn.style.background = '#161823';
+    btn.textContent = 'Adicionar ao carrinho';
+  } else {
+    btn.style.background = '#FE2C55';
+    btn.textContent = 'Comprar com cupom';
+  }
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSheet() {
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('colorSheet').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function openProtModal() {
+  document.getElementById('protOverlay').classList.add('open');
+  document.getElementById('protSheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeProtModal() {
+  document.getElementById('protOverlay').classList.remove('open');
+  document.getElementById('protSheet').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function selectColor(el) {
+  el.closest('.color-grid').querySelectorAll('.color-item').forEach(i => {
+    i.classList.remove('selected');
+    i.querySelector('.color-name').classList.remove('red');
+  });
+  el.classList.add('selected');
+  el.querySelector('.color-name').classList.add('red');
+}
+
+// Countdown timer
+(function() {
+  let s = 6 * 3600 + 43 * 60 + 54;
+  setInterval(() => {
+    s = Math.max(0, s - 1);
+    const h = String(Math.floor(s / 3600)).padStart(2,'0');
+    const m = String(Math.floor((s % 3600) / 60)).padStart(2,'0');
+    const sec = String(s % 60).padStart(2,'0');
+    const el = document.getElementById('sheetTimer');
+    if (el) el.textContent = h + ':' + m + ':' + sec;
+  }, 1000);
+})();
+</script>
+</body>
+</html>
