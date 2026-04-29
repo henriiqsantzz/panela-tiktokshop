@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Frete Expresso • Rota Real</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: #000; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .map-container { flex: 1; position: relative; background: #0a0c10; }
+        #map { height: 100%; width: 100%; background: #101216; }
+        .top-bar {
+            position: absolute; top: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.75); backdrop-filter: blur(12px);
+            padding: 14px 16px; z-index: 1000; border-bottom: 0.5px solid rgba(255,255,255,0.2);
+        }
+        .cep-card {
+            display: flex; gap: 10px; align-items: center;
+            background: #1c1e24; border-radius: 60px; padding: 4px 6px 4px 18px;
+            border: 0.5px solid #2c2f36;
+        }
+        .cep-card input { flex: 1; background: transparent; border: none; color: white; font-size: 0.95rem; padding: 12px 0; outline: none; font-weight: 500; }
+        .cep-card input::placeholder { color: #8e8e93; }
+        .cep-card button {
+            background: #fe2c55; border: none; color: white; font-weight: 700;
+            padding: 8px 20px; border-radius: 40px; font-size: 0.85rem;
+            cursor: pointer; display: flex; align-items: center; gap: 6px;
+        }
+        .cep-card button:active { transform: scale(0.96); background: #e6244a; }
+        .status-info { font-size: 0.7rem; color: #aaa; text-align: center; margin-top: 6px; }
+        .recalc-overlay {
+            position: absolute; bottom: 30px; left: 16px; right: 16px;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
+            border-radius: 28px; padding: 18px 20px; z-index: 1001;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            border: 0.5px solid rgba(255,255,255,0.2); text-align: center;
+        }
+        .recalc-overlay.hide { display: none; }
+        .spinner-box { width: 42px; height: 42px; border: 3px solid rgba(254,44,85,0.3); border-top: 3px solid #fe2c55; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .recalc-text { font-weight: 600; font-size: 1rem; color: white; }
+        .recalc-sub { font-size: 0.75rem; color: #bcbcbc; }
+        .upsell-popup {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #fff; border-radius: 28px 28px 0 0;
+            box-shadow: 0 -8px 30px rgba(0,0,0,0.3);
+            padding: 24px 20px 32px; z-index: 1050;
+            transform: translateY(100%); transition: transform 0.35s;
+        }
+        .upsell-popup.show { transform: translateY(0); }
+        .badge-offer { background: #fe2c5510; color: #fe2c55; font-weight: 700; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 50px; margin-bottom: 12px; }
+        .popup-title { font-size: 1.55rem; font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .popup-desc { color: #3a3a44; font-size: 0.9rem; margin-bottom: 20px; }
+        .price-line { display: flex; align-items: baseline; gap: 12px; margin-bottom: 24px; }
+        .price-old { text-decoration: line-through; color: #8e8e93; font-size: 1rem; }
+        .price-new { font-size: 1.9rem; font-weight: 800; color: #00b894; }
+        .btn-pix { background: #16a34a; width: 100%; padding: 18px; border: none; border-radius: 60px; font-weight: 800; font-size: 1.05rem; color: white; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; }
+        .btn-pix:active { transform: scale(0.97); background: #15803d; }
+        .close-upsell { position: absolute; top: 16px; right: 20px; background: #f2f2f6; width: 32px; height: 32px; border-radius: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .error-status { color: #fe2c55; }
+    </style>
+</head>
+<body>
+<div class="map-container">
+    <div id="map"></div>
+    <div class="top-bar">
+        <div class="cep-card">
+            <i class="fas fa-map-marker-alt" style="color:#fe2c55;"></i>
+            <input type="text" id="cepInput" placeholder="Digite seu CEP" value="18605245" maxlength="9">
+            <button id="btnRastrear"><i class="fas fa-route"></i> Rastrear</button>
+        </div>
+        <div class="status-info" id="statusMsg"><i class="fas fa-warehouse"></i> CD São Paulo • Rota real</div>
+    </div>
+    <div id="recalcOverlay" class="recalc-overlay hide">
+        <div class="spinner-box"></div>
+        <div class="recalc-text" id="recalcText"><i class="fas fa-sync-alt"></i> Calculando rota...</div>
+        <div class="recalc-sub" id="recalcSub"><i class="fas fa-road"></i> Buscando melhor caminho</div>
+    </div>
+</div>
+<div id="upsellPopup" class="upsell-popup">
+    <div class="close-upsell" id="closeUpsell"><i class="fas fa-times"></i></div>
+    <div class="badge-offer"><i class="fas fa-bolt"></i> OFERTA EXPRESSA</div>
+    <div class="popup-title"><i class="fas fa-truck-fast"></i> Entrega <span style="color:#fe2c55">Amanhã</span>?</div>
+    <div class="popup-desc" id="popupAddress"><i class="fas fa-road"></i> Rota prioritária disponível</div>
+    <div class="price-line"><span class="price-old">R$ 34,90</span><span class="price-new">+ R$ 14,90</span></div>
+    <button class="btn-pix" id="btnFinalizar"><i class="fab fa-pix"></i> SIM, QUERO PAGAR VIA PIX</button>
+    <div style="font-size:0.65rem; text-align:center; margin-top:12px;"><i class="fas fa-lock"></i> Pagamento seguro</div>
+</div>
+<script>
+    (function() {
+        // Centro de distribuição fixo (São Paulo - Brás)
+        const CD = { lat: -23.5475, lng: -46.6361 };
+        const CD_NOME = "CD Paulista - Matriz";
+        
+        let map = null;
+        let currentRouteLayer = null, animatingLine = null;
+        let lastDestCoords = null, lastCity = "";
+        
+        function initMap() {
+            if (map) return;
+            map = L.map('map').setView([CD.lat, CD.lng], 9);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OSM & CartoDB',
+                subdomains: 'abcd'
+            }).addTo(map);
+            const cdIcon = L.divIcon({
+                html: '<div style="background:#fe2c55; width:34px; height:34px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center;"><i class="fas fa-box" style="color:white; font-size:16px;"></i></div>',
+                iconSize: [34,34]
+            });
+            L.marker([CD.lat, CD.lng], { icon: cdIcon }).addTo(map).bindTooltip(CD_NOME);
+        }
+        
+        function clearRoutes() {
+            if (currentRouteLayer) { map.removeLayer(currentRouteLayer); currentRouteLayer = null; }
+            if (animatingLine) { map.removeLayer(animatingLine); animatingLine = null; }
+        }
+        
+        function decodePolyline(encoded) {
+            let points = [], idx = 0, len = encoded.length, lat = 0, lng = 0;
+            while (idx < len) {
+                let b, shift = 0, result = 0;
+                do { b = encoded.charCodeAt(idx++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+                let dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                lat += dlat;
+                shift = 0; result = 0;
+                do { b = encoded.charCodeAt(idx++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+                let dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                lng += dlng;
+                points.push([lat / 1e5, lng / 1e5]);
+            }
+            return points;
+        }
+        
+        async function animateRoute(points, duration = 2200) {
+            return new Promise((resolve) => {
+                if (!points.length) { resolve(); return; }
+                clearRoutes();
+                animatingLine = L.polyline([], { color: '#fe2c55', weight: 5, opacity: 0.95 }).addTo(map);
+                if (points.length > 2) {
+                    currentRouteLayer = L.polyline(points, { color: '#ffffff40', weight: 3, opacity: 0.4, interactive: false }).addTo(map);
+                }
+                let step = 0, steps = points.length, start = performance.now();
+                function frame(now) {
+                    let t = Math.min(1, (now - start) / duration);
+                    let target = Math.floor(t * steps);
+                    while (step <= target && step < steps) {
+                        animatingLine.addLatLng(points[step]);
+                        step++;
+                    }
+                    if (t < 1 && step < steps) requestAnimationFrame(frame);
+                    else resolve();
+                }
+                requestAnimationFrame(frame);
+            });
+        }
+        
+        // 1. ViaCEP (brasileiro)
+        async function getAddressFromViaCEP(cep) {
+            const clean = cep.replace(/\D/g, '');
+            if (clean.length !== 8) throw new Error('CEP inválido (8 dígitos)');
+            const resp = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+            const data = await resp.json();
+            if (data.erro) throw new Error('CEP não encontrado');
+            const cidade = data.localidade;
+            const uf = data.uf;
+            // Monta um endereço forte para geocode
+            const query = `${cidade}, ${uf}, Brasil`;
+            return { query, cidade, uf };
+        }
+        
+        // 2. Geocodificação usando a cidade + UF (mais confiável)
+        async function geocodeByCity(cityUfQuery) {
+            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityUfQuery)}&format=json&limit=1&countrycodes=br&addressdetails=1`;
+            const resp = await fetch(url, { headers: { 'User-Agent': 'FreteApp/1.0' } });
+            const data = await resp.json();
+            if (!data || data.length === 0) throw new Error('Geocode falhou');
+            return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+        }
+        
+        // 3. Rota OSRM com fallback progressivo
+        async function getRoadRoute(start, end) {
+            try {
+                const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=polyline`;
+                const resp = await fetch(url);
+                const data = await resp.json();
+                if (data.routes && data.routes.length) {
+                    const points = decodePolyline(data.routes[0].geometry);
+                    if (points.length > 1) return points.map(p => L.latLng(p[0], p[1]));
+                }
+                throw new Error('No OSRM route');
+            } catch (e) {
+                // Fallback: cria uma linha reta com vários pontos para não quebrar a experiência
+                const steps = 40;
+                const points = [];
+                for (let i = 0; i <= steps; i++) {
+                    const t = i / steps;
+                    const lat = start.lat + (end.lat - start.lat) * t;
+                    const lng = start.lng + (end.lng - start.lng) * t;
+                    points.push(L.latLng(lat, lng));
+                }
+                return points;
+            }
+        }
+        
+        function showOverlay(msg, sub) {
+            const ov = document.getElementById('recalcOverlay');
+            document.getElementById('recalcText').innerHTML = `<i class="fas fa-sync-alt"></i> ${msg}`;
+            document.getElementById('recalcSub').innerHTML = `<i class="fas fa-chart-line"></i> ${sub}`;
+            ov.classList.remove('hide');
+        }
+        function hideOverlay() { document.getElementById('recalcOverlay').classList.add('hide'); }
+        function showUpsell(city) {
+            document.getElementById('popupAddress').innerHTML = `<i class="fas fa-location-dot"></i> Rota expressa para <strong>${city}</strong>. Entrega em 1 dia útil.`;
+            document.getElementById('upsellPopup').classList.add('show');
+        }
+        function hideUpsell() { document.getElementById('upsellPopup').classList.remove('show'); }
+        
+        async function onTrack() {
+            hideUpsell();
+            const cep = document.getElementById('cepInput').value.trim();
+            if (!cep) return;
+            showOverlay("Consultando CEP...", "ViaCEP Brasil");
+            try {
+                // Passo 1: obter cidade e UF
+                const { query, cidade } = await getAddressFromViaCEP(cep);
+                lastCity = cidade;
+                document.getElementById('statusMsg').innerHTML = `<i class="fas fa-location-dot"></i> ${cidade} - ${query.split(',')[2] || 'SP'}`;
+                showOverlay("Localizando cidade no mapa...", "Geocodificação precisa");
+                // Passo 2: coordenadas da cidade (centro)
+                const coords = await geocodeByCity(query);
+                lastDestCoords = coords;
+                showOverlay("Traçando rota por rodovias...", "OSRM");
+                // Passo 3: rota real entre CD e cidade destino
+                const routePoints = await getRoadRoute(CD, coords);
+                // Ajusta o zoom para mostrar todo o trajeto (CD até destino) com folga
+                const bounds = L.latLngBounds([CD, coords]);
+                map.fitBounds(bounds, { padding: [80, 80] });
+                // Marcador de destino
+                const destIcon = L.divIcon({
+                    html: '<div style="background:#00b894; width:34px; height:34px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center;"><i class="fas fa-flag-checkered" style="color:white; font-size:16px;"></i></div>',
+                    iconSize: [34,34]
+                });
+                if (window.destMarker) map.removeLayer(window.destMarker);
+                window.destMarker = L.marker([coords.lat, coords.lng], { icon: destIcon }).addTo(map);
+                window.destMarker.bindTooltip(cidade);
+                // Animação
+                await animateRoute(routePoints, 2200);
+                hideOverlay();
+                showUpsell(cidade);
+            } catch (err) {
+                console.error(err);
+                hideOverlay();
+                // Mostra erro no status, sem fallback falso
+                document.getElementById('statusMsg').innerHTML = `<i class="fas fa-exclamation-triangle error-status"></i> Erro: CEP não encontrado ou inválido. Tente outro.`;
+                // Opcional: não mostramos upsell, apenas informamos
+                alert("Não foi possível localizar o CEP. Verifique se é um CEP brasileiro válido.");
+            }
+        }
+        
+        function redirectToPix() {
+            const cep = document.getElementById('cepInput').value.replace(/\D/g, '');
+            const orderId = Date.now();
+            const url = `https://checkout.exemplo.com/pix?order_id=${orderId}&upsell=frete_priority&value=14.90&origin=tiktok_mapa_real&cep=${cep}&cidade=${encodeURIComponent(lastCity)}`;
+            // Substitua pelo link real do seu checkout Pix
+            window.location.href = url;
+        }
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            document.getElementById('btnRastrear').addEventListener('click', onTrack);
+            document.getElementById('btnFinalizar').addEventListener('click', redirectToPix);
+            document.getElementById('closeUpsell').addEventListener('click', hideUpsell);
+            const input = document.getElementById('cepInput');
+            input.addEventListener('keypress', (e) => { if (e.key === 'Enter') onTrack(); });
+            // Carrega automaticamente o CEP exemplo (18605245) para demonstrar
+            setTimeout(() => onTrack(), 800);
+        });
+    })();
+</script>
+</body>
+</html>
