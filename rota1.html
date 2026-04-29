@@ -305,8 +305,8 @@
             const CD = { lat: -23.5475, lng: -46.6361 };
             let map = null;
             let currentRouteLayer = null, animatingLine = null;
-            let lastDestCoords = null, lastCity = "";
-            let lastLogradouro = "", lastBairro = "";
+            let lastDestCoords = null;
+            let lastCity = "";
             let lastUsedCEP = null;
             let countdownInterval = null;
 
@@ -377,12 +377,10 @@
                 const resp = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
                 const data = await resp.json();
                 if (data.erro) throw new Error('CEP não encontrado');
-                const logradouro = data.logradouro || '';
-                const bairro = data.bairro || '';
                 const cidade = data.localidade;
                 const uf = data.uf;
                 const query = `${cidade}, ${uf}, Brasil`;
-                return { query, cidade, uf, logradouro, bairro };
+                return { query, cidade, uf };
             }
             
             async function geocodeByCity(cityUfQuery) {
@@ -393,19 +391,16 @@
                 return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
             }
             
-            // Reverse geocode detalhado: retorna objeto com rua, bairro, cidade, uf e cep
             async function reverseGeocodeDetails(lat, lng) {
                 const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&extratags=1&namedetails=1`;
                 const resp = await fetch(url, { headers: { 'User-Agent': 'CorreiosApp/1.0' } });
                 const data = await resp.json();
                 if (!data || !data.address) throw new Error('Reverse geocode falhou');
                 const addr = data.address;
-                const road = addr.road || addr.street || '';
-                const suburb = addr.suburb || addr.neighbourhood || addr.quarter || '';
                 const city = addr.city || addr.town || addr.village || '';
                 const state = addr.state || '';
                 const cep = addr.postcode ? addr.postcode.replace(/\D/g, '') : null;
-                return { road, suburb, city, state, cep };
+                return { city, state, cep };
             }
             
             async function getRoadRoute(start, end) {
@@ -462,18 +457,9 @@
                 if (countdownInterval) clearInterval(countdownInterval);
             }
             
-            function showUpsell(logradouro, bairro, cidade) {
-                let addressText = '';
-                if (logradouro && bairro) {
-                    addressText = `sua rua <strong>${logradouro}</strong> no bairro <strong>${bairro}</strong> (${cidade})`;
-                } else if (logradouro) {
-                    addressText = `sua rua <strong>${logradouro}</strong> (${cidade})`;
-                } else if (bairro) {
-                    addressText = `seu bairro <strong>${bairro}</strong> (${cidade})`;
-                } else {
-                    addressText = `sua região (${cidade})`;
-                }
-                document.getElementById('popupAddress').innerHTML = `<i class="fas fa-location-dot"></i> O frete grátis não se aplica à ${addressText}. Para evitar o cancelamento do pedido, confirme o pagamento do frete abaixo.`;
+            // Cidade em NEGRITO
+            function showUpsell(cidade) {
+                document.getElementById('popupAddress').innerHTML = `<i class="fas fa-location-dot"></i> O frete grátis não se aplica à sua região (<strong>${cidade}</strong>). Para evitar o cancelamento do pedido, confirme o pagamento do frete abaixo.`;
                 document.getElementById('upsellPopup').classList.add('show');
                 startCountdown(300);
             }
@@ -483,49 +469,42 @@
                 stopCountdown();
             }
             
-            // Função principal que recebe o CEP (ou endereço) e traça a rota
-            async function trackWithAddress(logradouro, bairro, cidade, uf, cep = null) {
+            async function trackWithCEP(cep, fromStorage = false) {
                 hideUpsell();
-                // Se temos CEP, usamos ViaCEP para garantir dados oficiais (prioridade)
-                let finalLogradouro = logradouro;
-                let finalBairro = bairro;
-                let finalCidade = cidade;
-                let finalUf = uf;
-                let queryCidade = `${cidade}, ${uf}, Brasil`;
-                
-                if (cep) {
-                    try {
-                        const viaData = await getAddressFromViaCEP(cep);
-                        if (viaData.logradouro) finalLogradouro = viaData.logradouro;
-                        if (viaData.bairro) finalBairro = viaData.bairro;
-                        finalCidade = viaData.cidade;
-                        finalUf = viaData.uf;
-                        queryCidade = `${finalCidade}, ${finalUf}, Brasil`;
-                    } catch(e) { console.warn("ViaCEP falhou, usando dados do Nominatim."); }
+                if (!cep) return;
+                if (!fromStorage) showOverlay("Recalculando frete...", "Analisando rota do seu endereço");
+                else showOverlay("Carregando rota salva...", "Usando localização anterior");
+                try {
+                    const { query, cidade, uf } = await getAddressFromViaCEP(cep);
+                    lastCity = cidade;
+                    if (!fromStorage) {
+                        showOverlay("Localizando coordenadas...", "Geocodificação");
+                    }
+                    const coords = await geocodeByCity(query);
+                    lastDestCoords = coords;
+                    if (!fromStorage) {
+                        showOverlay("Traçando rota real...", "OSRM Routing");
+                    }
+                    const routePoints = await getRoadRoute(CD, coords);
+                    const bounds = L.latLngBounds([CD, coords]);
+                    map.fitBounds(bounds, { padding: [60, 60] });
+                    const destIcon = L.divIcon({
+                        html: '<div style="background:#00a650; width:34px; height:34px; border-radius:50%; border:2px solid #FFCC00; display:flex; align-items:center; justify-content:center;"><i class="fas fa-flag-checkered" style="color:white;"></i></div>',
+                        iconSize: [34,34],
+                        className: 'custom-icon'
+                    });
+                    if (window.destMarker) map.removeLayer(window.destMarker);
+                    window.destMarker = L.marker([coords.lat, coords.lng], { icon: destIcon }).addTo(map);
+                    await animateRoute(routePoints, 2200);
+                    hideOverlay();
+                    showUpsell(cidade);
+                    lastUsedCEP = cep;
+                    if (!fromStorage) localStorage.setItem('savedCEP', cep);
+                } catch (err) {
+                    console.error(err);
+                    hideOverlay();
+                    alert("Não foi possível calcular a rota. Verifique sua conexão e tente novamente.");
                 }
-                
-                lastCity = finalCidade;
-                lastLogradouro = finalLogradouro;
-                lastBairro = finalBairro;
-                
-                showOverlay("Localizando coordenadas...", "Geocodificação");
-                const coords = await geocodeByCity(queryCidade);
-                lastDestCoords = coords;
-                showOverlay("Traçando rota real...", "OSRM Routing");
-                const routePoints = await getRoadRoute(CD, coords);
-                const bounds = L.latLngBounds([CD, coords]);
-                map.fitBounds(bounds, { padding: [60, 60] });
-                const destIcon = L.divIcon({
-                    html: '<div style="background:#00a650; width:34px; height:34px; border-radius:50%; border:2px solid #FFCC00; display:flex; align-items:center; justify-content:center;"><i class="fas fa-flag-checkered" style="color:white;"></i></div>',
-                    iconSize: [34,34],
-                    className: 'custom-icon'
-                });
-                if (window.destMarker) map.removeLayer(window.destMarker);
-                window.destMarker = L.marker([coords.lat, coords.lng], { icon: destIcon }).addTo(map);
-                await animateRoute(routePoints, 2200);
-                hideOverlay();
-                showUpsell(finalLogradouro, finalBairro, finalCidade);
-                if (cep) localStorage.setItem('savedCEP', cep);
             }
             
             async function requestLocationAndTrack() {
@@ -543,8 +522,27 @@
                     try {
                         const details = await reverseGeocodeDetails(lat, lng);
                         if (!details.city) throw new Error("Cidade não identificada");
-                        // Se temos CEP, usamos (opcional)
-                        await trackWithAddress(details.road, details.suburb, details.city, details.state, details.cep);
+                        if (details.cep) {
+                            await trackWithCEP(details.cep, false);
+                        } else {
+                            const query = `${details.city}, ${details.state}, Brasil`;
+                            const coords = await geocodeByCity(query);
+                            lastCity = details.city;
+                            lastDestCoords = coords;
+                            const routePoints = await getRoadRoute(CD, coords);
+                            const bounds = L.latLngBounds([CD, coords]);
+                            map.fitBounds(bounds, { padding: [60, 60] });
+                            const destIcon = L.divIcon({
+                                html: '<div style="background:#00a650; width:34px; height:34px; border-radius:50%; border:2px solid #FFCC00; display:flex; align-items:center; justify-content:center;"><i class="fas fa-flag-checkered" style="color:white;"></i></div>',
+                                iconSize: [34,34],
+                                className: 'custom-icon'
+                            });
+                            if (window.destMarker) map.removeLayer(window.destMarker);
+                            window.destMarker = L.marker([coords.lat, coords.lng], { icon: destIcon }).addTo(map);
+                            await animateRoute(routePoints, 2200);
+                            hideOverlay();
+                            showUpsell(details.city);
+                        }
                     } catch (err) {
                         console.error(err);
                         hideOverlay();
@@ -564,12 +562,7 @@
                 initMap();
                 const savedCEP = localStorage.getItem('savedCEP');
                 if (savedCEP) {
-                    // Recupera endereço via CEP
-                    getAddressFromViaCEP(savedCEP).then(({ cidade, uf, logradouro, bairro }) => {
-                        trackWithAddress(logradouro, bairro, cidade, uf, savedCEP);
-                    }).catch(() => {
-                        requestLocationAndTrack();
-                    });
+                    trackWithCEP(savedCEP, true);
                 } else {
                     requestLocationAndTrack();
                 }
