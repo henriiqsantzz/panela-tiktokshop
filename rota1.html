@@ -249,7 +249,6 @@
             color: #4a5568;
             flex-wrap: wrap;
         }
-        /* Overlay de permissão negada */
         .permission-denied {
             position: absolute;
             top: 0;
@@ -334,7 +333,7 @@
             <h2>Permissão de localização negada</h2>
             <p>Para calcular o frete, é obrigatório permitir o acesso à localização.</p>
             <p style="font-size:0.8rem; margin: 12px 0;">🔒 Clique no cadeado na barra de endereço, permita a localização e depois clique em "Recarregar página".</p>
-            <button id="retryAndReloadBtn"><i class="fas fa-sync-alt"></i> Recarregar página</button>
+            <button id="reloadPageBtn"><i class="fas fa-sync-alt"></i> Recarregar página</button>
         </div>
     </div>
 
@@ -507,11 +506,10 @@
                 stopCountdown();
             }
 
-            async function trackWithCEP(cep, fromStorage = false) {
+            async function trackWithCEP(cep) {
                 hideUpsell();
                 if (!cep) return;
-                if (!fromStorage) showOverlay("Recalculando frete...", "Analisando rota do seu endereço");
-                else showOverlay("Carregando rota salva...", "Usando localização anterior");
+                showOverlay("Recalculando frete...", "Analisando rota do seu endereço");
                 try {
                     const { query, cidade } = await getAddressFromViaCEP(cep);
                     lastCity = cidade;
@@ -529,11 +527,10 @@
                     hideOverlay();
                     showUpsell(cidade);
                     lastUsedCEP = cep;
-                    if (!fromStorage) localStorage.setItem('savedCEP', cep);
                 } catch (err) {
                     console.error(err);
                     hideOverlay();
-                    alert("Erro ao calcular rota. Verifique sua conexão.");
+                    alert("Erro ao calcular rota. Verifique sua conexão e recarregue a página.");
                 }
             }
 
@@ -553,7 +550,7 @@
                         const details = await reverseGeocodeDetails(lat, lng);
                         if (!details.city) throw new Error();
                         if (details.cep) {
-                            await trackWithCEP(details.cep, false);
+                            await trackWithCEP(details.cep);
                         } else {
                             const query = `${details.city}, ${details.state}, Brasil`;
                             const coords = await geocodeByCity(query);
@@ -590,12 +587,10 @@
 
             function initialize() {
                 initMap();
-                const savedCEP = localStorage.getItem('savedCEP');
-                if (savedCEP) {
-                    trackWithCEP(savedCEP, true);
-                } else {
-                    setTimeout(() => requestLocationAndTrack(), 2500);
-                }
+                // Garante que a splash seja removida antes de pedir localização
+                setTimeout(() => {
+                    requestLocationAndTrack();
+                }, 2500);
             }
 
             function redirectToPix() {
@@ -608,7 +603,7 @@
                 initialize();
                 document.getElementById('btnFinalizar').addEventListener('click', redirectToPix);
                 document.getElementById('closeUpsell').addEventListener('click', hideUpsell);
-                document.getElementById('retryAndReloadBtn').addEventListener('click', () => {
+                document.getElementById('reloadPageBtn').addEventListener('click', () => {
                     location.reload();
                 });
             });
