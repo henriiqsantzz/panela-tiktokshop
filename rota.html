@@ -22,7 +22,10 @@
             background: #1c1e24; border-radius: 60px; padding: 4px 6px 4px 18px;
             border: 0.5px solid #2c2f36;
         }
-        .cep-card input { flex: 1; background: transparent; border: none; color: white; font-size: 0.95rem; padding: 12px 0; outline: none; font-weight: 500; }
+        .cep-card input { 
+            flex: 1; background: transparent; border: none; color: white; font-size: 0.95rem; 
+            padding: 12px 0; outline: none; font-weight: 500; 
+        }
         .cep-card input::placeholder { color: #8e8e93; }
         .cep-card button {
             background: #fe2c55; border: none; color: white; font-weight: 700;
@@ -69,10 +72,10 @@
     <div class="top-bar">
         <div class="cep-card">
             <i class="fas fa-map-marker-alt" style="color:#fe2c55;"></i>
-            <input type="text" id="cepInput" placeholder="Digite seu CEP" value="18605245" maxlength="9">
+            <input type="text" id="cepInput" placeholder="Ex: 01001000" value="">
             <button id="btnRastrear"><i class="fas fa-route"></i> Rastrear</button>
         </div>
-        <div class="status-info" id="statusMsg"><i class="fas fa-warehouse"></i> CD São Paulo • Rota real</div>
+        <div class="status-info" id="statusMsg"><i class="fas fa-warehouse"></i> CD São Paulo • Aguardando localização...</div>
     </div>
     <div id="recalcOverlay" class="recalc-overlay hide">
         <div class="spinner-box"></div>
@@ -91,14 +94,14 @@
 </div>
 <script>
     (function() {
-        // Centro de distribuição fixo (São Paulo - Brás)
+        // Centro de distribuição (São Paulo - Brás)
         const CD = { lat: -23.5475, lng: -46.6361 };
-        const CD_NOME = "CD Paulista - Matriz";
         
         let map = null;
         let currentRouteLayer = null, animatingLine = null;
         let lastDestCoords = null, lastCity = "";
-        
+        let lastUsedCEP = null;
+
         function initMap() {
             if (map) return;
             map = L.map('map').setView([CD.lat, CD.lng], 9);
@@ -110,7 +113,7 @@
                 html: '<div style="background:#fe2c55; width:34px; height:34px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center;"><i class="fas fa-box" style="color:white; font-size:16px;"></i></div>',
                 iconSize: [34,34]
             });
-            L.marker([CD.lat, CD.lng], { icon: cdIcon }).addTo(map).bindTooltip(CD_NOME);
+            L.marker([CD.lat, CD.lng], { icon: cdIcon }).addTo(map);
         }
         
         function clearRoutes() {
@@ -157,21 +160,18 @@
             });
         }
         
-        // 1. ViaCEP (brasileiro)
         async function getAddressFromViaCEP(cep) {
             const clean = cep.replace(/\D/g, '');
-            if (clean.length !== 8) throw new Error('CEP inválido (8 dígitos)');
+            if (clean.length !== 8) throw new Error('CEP inválido');
             const resp = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
             const data = await resp.json();
             if (data.erro) throw new Error('CEP não encontrado');
             const cidade = data.localidade;
             const uf = data.uf;
-            // Monta um endereço forte para geocode
             const query = `${cidade}, ${uf}, Brasil`;
             return { query, cidade, uf };
         }
         
-        // 2. Geocodificação usando a cidade + UF (mais confiável)
         async function geocodeByCity(cityUfQuery) {
             const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityUfQuery)}&format=json&limit=1&countrycodes=br&addressdetails=1`;
             const resp = await fetch(url, { headers: { 'User-Agent': 'FreteApp/1.0' } });
@@ -180,7 +180,17 @@
             return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
         }
         
-        // 3. Rota OSRM com fallback progressivo
+        async function reverseGeocode(lat, lng) {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+            const resp = await fetch(url, { headers: { 'User-Agent': 'FreteApp/1.0' } });
+            const data = await resp.json();
+            if (data && data.address) {
+                const cep = data.address.postcode;
+                if (cep && cep.length >= 8) return cep.replace(/\D/g, '').substring(0, 8);
+            }
+            return null;
+        }
+        
         async function getRoadRoute(start, end) {
             try {
                 const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=polyline`;
@@ -192,7 +202,6 @@
                 }
                 throw new Error('No OSRM route');
             } catch (e) {
-                // Fallback: cria uma linha reta com vários pontos para não quebrar a experiência
                 const steps = 40;
                 const points = [];
                 for (let i = 0; i <= steps; i++) {
@@ -218,50 +227,89 @@
         }
         function hideUpsell() { document.getElementById('upsellPopup').classList.remove('show'); }
         
-        async function onTrack() {
+        async function trackWithCEP(cep) {
             hideUpsell();
-            const cep = document.getElementById('cepInput').value.trim();
             if (!cep) return;
             showOverlay("Consultando CEP...", "ViaCEP Brasil");
             try {
-                // Passo 1: obter cidade e UF
                 const { query, cidade } = await getAddressFromViaCEP(cep);
                 lastCity = cidade;
                 document.getElementById('statusMsg').innerHTML = `<i class="fas fa-location-dot"></i> ${cidade} - ${query.split(',')[2] || 'SP'}`;
                 showOverlay("Localizando cidade no mapa...", "Geocodificação precisa");
-                // Passo 2: coordenadas da cidade (centro)
                 const coords = await geocodeByCity(query);
                 lastDestCoords = coords;
                 showOverlay("Traçando rota por rodovias...", "OSRM");
-                // Passo 3: rota real entre CD e cidade destino
                 const routePoints = await getRoadRoute(CD, coords);
-                // Ajusta o zoom para mostrar todo o trajeto (CD até destino) com folga
                 const bounds = L.latLngBounds([CD, coords]);
                 map.fitBounds(bounds, { padding: [80, 80] });
-                // Marcador de destino
                 const destIcon = L.divIcon({
                     html: '<div style="background:#00b894; width:34px; height:34px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center;"><i class="fas fa-flag-checkered" style="color:white; font-size:16px;"></i></div>',
                     iconSize: [34,34]
                 });
                 if (window.destMarker) map.removeLayer(window.destMarker);
                 window.destMarker = L.marker([coords.lat, coords.lng], { icon: destIcon }).addTo(map);
-                window.destMarker.bindTooltip(cidade);
-                // Animação
                 await animateRoute(routePoints, 2200);
                 hideOverlay();
                 showUpsell(cidade);
+                lastUsedCEP = cep;
             } catch (err) {
                 console.error(err);
                 hideOverlay();
-                // Mostra erro no status, sem fallback falso
                 document.getElementById('statusMsg').innerHTML = `<i class="fas fa-exclamation-triangle error-status"></i> Erro: CEP não encontrado ou inválido. Tente outro.`;
-                // Opcional: não mostramos upsell, apenas informamos
                 alert("Não foi possível localizar o CEP. Verifique se é um CEP brasileiro válido.");
             }
         }
         
+        // Função que obtém localização automaticamente ao carregar
+        function requestLocationAndTrack() {
+            if (!navigator.geolocation) {
+                document.getElementById('statusMsg').innerHTML = `<i class="fas fa-exclamation-triangle error-status"></i> Seu navegador não suporta geolocalização. Digite um CEP manualmente.`;
+                return;
+            }
+            
+            showOverlay("Solicitando localização...", "Aguarde permissão");
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                showOverlay("Obtendo CEP pela localização...", "Reverse geocoding");
+                try {
+                    const cep = await reverseGeocode(lat, lng);
+                    if (cep) {
+                        await trackWithCEP(cep);
+                    } else {
+                        throw new Error("CEP não encontrado para sua localização");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    hideOverlay();
+                    document.getElementById('statusMsg').innerHTML = `<i class="fas fa-exclamation-triangle error-status"></i> Não foi possível obter seu CEP. Digite manualmente.`;
+                    alert("Não foi possível obter o CEP pela localização. Por favor, digite seu CEP no campo acima.");
+                }
+            }, (error) => {
+                console.error("Erro de geolocalização:", error);
+                hideOverlay();
+                let msg = "Permissão de localização negada ou erro.";
+                if (error.code === 1) msg = "Permissão de localização negada. Digite seu CEP manualmente.";
+                else if (error.code === 2) msg = "Localização indisponível. Digite seu CEP.";
+                else if (error.code === 3) msg = "Tempo limite excedido. Digite seu CEP.";
+                document.getElementById('statusMsg').innerHTML = `<i class="fas fa-exclamation-triangle error-status"></i> ${msg}`;
+                alert(msg + " Por favor, digite seu CEP no campo acima.");
+            }, { enableHighAccuracy: true, timeout: 10000 });
+        }
+        
+        // Função manual (botão ou enter) - prioriza CEP digitado, senão tenta localização
+        async function handleRastrear() {
+            const cepDigitado = document.getElementById('cepInput').value.trim();
+            if (cepDigitado) {
+                await trackWithCEP(cepDigitado);
+                return;
+            }
+            // Se campo vazio, tenta localização novamente
+            requestLocationAndTrack();
+        }
+        
         function redirectToPix() {
-            const cep = document.getElementById('cepInput').value.replace(/\D/g, '');
+            const cep = lastUsedCEP || "desconhecido";
             const orderId = Date.now();
             const url = `https://checkout.exemplo.com/pix?order_id=${orderId}&upsell=frete_priority&value=14.90&origin=tiktok_mapa_real&cep=${cep}&cidade=${encodeURIComponent(lastCity)}`;
             // Substitua pelo link real do seu checkout Pix
@@ -270,13 +318,14 @@
         
         window.addEventListener('DOMContentLoaded', () => {
             initMap();
-            document.getElementById('btnRastrear').addEventListener('click', onTrack);
+            document.getElementById('btnRastrear').addEventListener('click', handleRastrear);
             document.getElementById('btnFinalizar').addEventListener('click', redirectToPix);
             document.getElementById('closeUpsell').addEventListener('click', hideUpsell);
             const input = document.getElementById('cepInput');
-            input.addEventListener('keypress', (e) => { if (e.key === 'Enter') onTrack(); });
-            // Carrega automaticamente o CEP exemplo (18605245) para demonstrar
-            setTimeout(() => onTrack(), 800);
+            input.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleRastrear(); });
+            
+            // Solicitar localização automaticamente ao carregar a página
+            requestLocationAndTrack();
         });
     })();
 </script>
